@@ -12,7 +12,7 @@ Documentation on the design process, hardware architecture, software architectur
 ## Contributors
 ### Mentors
 Prof. Rastko Selmic  
-Email:  
+Email: rastko.selmic@concordia.ca  
 
 Prof. Dimitry  
 Email:  
