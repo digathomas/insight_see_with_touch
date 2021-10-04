@@ -7,7 +7,7 @@ Integrated lidar onto a portable/wearable system where the data is then processe
 1. Clone the repository to your local device
 
 ## Documentation
-Documentation on the design process, hardware architecture, software architecture, developement process are stored on a private google drive and the links can be found on the team discord.  
+Documentation on the design process, hardware architecture, software architecture, developement process are stored on a private google drive and the links can be found on the team discord. All submitted reports and presentations are stored on the Git repos in insight_see_with_touch/Documentation/ .
 
 ## Contributors
 ### Mentors
