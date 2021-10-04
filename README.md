@@ -14,8 +14,8 @@ Documentation on the design process, hardware architecture, software architectur
 Prof. Rastko Selmic  
 Email: rastko.selmic@concordia.ca  
 
-Eng. Dmitry Rozhdestvenskiy 
-Email:  dmitry.rozhdestvenskiy@concordia.ca
+Eng. Dmitry Rozhdestvenskiy  
+Email:  dmitry.rozhdestvenskiy@concordia.ca  
 
 ### Students
 Francis Castagna Narcisse  
