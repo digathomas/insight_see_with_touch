@@ -1,7 +1,7 @@
 # Insight: See with Touch
 
 ## About
-A portable sight and navigation assitance system. With the use of LiDAR sensor technology, the 3D world is interpreted and projected onto a virtual 2D plane. The 2D plane distance data is then communicated to the user through glove haptic feedback.
+A portable sight and navigation assistance system. With the use of LiDAR sensor technology, the 3D world is interpreted and projected onto a virtual 2D plane. The 2D plane distance data is then communicated to the user through glove haptic feedback.
 
 ## Procedures
 1. Clone the repository to your local device
