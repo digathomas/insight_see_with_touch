@@ -1,21 +1,21 @@
-# insight_see_with_touch
+# Insight: See with Touch
 
 ## About
-Integrated lidar onto a portable/wearable system where the data is then processed and communicated to the user making it possible to see the world around him/her using touch instead of sight.  
+A portable sight and navigation assistance system. With the use of LiDAR sensor technology, the 3D world is interpreted and projected onto a virtual 2D plane. The 2D plane distance data is then communicated to the user through glove haptic feedback.
 
-## Instructions
+## Procedures
 1. Clone the repository to your local device
 
 ## Documentation
-Documentation on the design process, hardware architecture, software architecture, developement process are stored on a private google drive and the links can be found on the team discord.  
+Documentation on the design process, hardware architecture, software architecture, developement process are stored on a private google drive and the links can be found on the team discord. All submitted reports and presentations are stored on the Git repos in insight_see_with_touch/Documentation/ .
 
 ## Contributors
 ### Mentors
 Prof. Rastko Selmic  
 Email: rastko.selmic@concordia.ca  
 
-Prof. Dimitry  
-Email:  
+Eng. Dmitry Rozhdestvenskiy  
+Email:  dmitry.rozhdestvenskiy@concordia.ca  
 
 ### Students
 Francis Castagna Narcisse  
@@ -40,4 +40,4 @@ Email: thomas.am.tran@gmail.com
 
 Yiwei Wen  
 Student ID: 27562446  
-Email: ewaywen@gmial.com  
+Email: ewaywen@gmail.com  
