@@ -1,6 +1,10 @@
 package lidar.LidarModule;
 
+import com.example.insight.BTSerial.PriorityModule;
+import com.example.insight.BTSerial.ThreeTuple;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
@@ -9,6 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class DataPoolScheduler implements Runnable {
     private static ArrayBlockingQueue<int[]> hapticQ;
+    private static ArrayBlockingQueue<ThreeTuple> LiDARQ;
     private ThreadPoolExecutor executor;
     private int horizontalSectors = 8;
     private int verticalSectors = 2;
@@ -18,6 +23,7 @@ public class DataPoolScheduler implements Runnable {
     public DataPoolScheduler() {
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
         DataPoolScheduler.hapticQ = LidarRenderer.getHapticQ();
+        DataPoolScheduler.LiDARQ = PriorityModule.getliDARQ();
     }
 
     @Override
@@ -42,62 +48,71 @@ public class DataPoolScheduler implements Runnable {
                 callsOut = executor.invokeAll(calls);
                 List<Integer> hapticOut = new ArrayList<>();
                 for (Future f : callsOut) hapticOut.add((Integer) f.get());
-                String serialOut = "";
-                for (Integer integer : hapticOut) {
-                    Integer value = integer / 314;
+                //String serialOut = "";
+                //TODO: make generic
+                int[] serialOut = new int[20];
+                serialOut[0] = -1;
+                serialOut[1] = -1;
+                serialOut[18] = -1;
+                serialOut[19] = -1;
+                int priority = -1;
+                for (int i = 2; i < 18; i++) {
+                    int value = hapticOut.get(i - 2) / 314;
+                    if (value > priority) priority = value;
                     switch (value) {
                         case 0:
-                            serialOut += 0;
+                            serialOut[i] = 0;
                             break;
                         case 1:
-                            serialOut += 1;
+                            serialOut[i] = 1;
                             break;
                         case 2:
-                            serialOut += 2;
+                            serialOut[i] = 2;
                             break;
                         case 3:
-                            serialOut += 3;
+                            serialOut[i] = 3;
                             break;
                         case 4:
-                            serialOut += 4;
+                            serialOut[i] = 4;
                             break;
                         case 5:
-                            serialOut += 5;
+                            serialOut[i] = 5;
                             break;
                         case 6:
-                            serialOut += 6;
+                            serialOut[i] = 6;
                             break;
                         case 7:
-                            serialOut += 7;
+                            serialOut[i] = 7;
                             break;
                         case 8:
-                            serialOut += 8;
+                            serialOut[i] = 8;
                             break;
                         case 9:
-                            serialOut += 9;
+                            serialOut[i] = 9;
                             break;
                         case 10:
-                            serialOut += "A";
+                            serialOut[i] = 10;
                             break;
                         case 11:
-                            serialOut += "B";
+                            serialOut[i] = 11;
                             break;
                         case 12:
-                            serialOut += "C";
+                            serialOut[i] = 12;
                             break;
                         case 13:
-                            serialOut += "D";
+                            serialOut[i] = 13;
                             break;
                         case 14:
-                            serialOut += "E";
+                            serialOut[i] = 14;
                             break;
                         case 15:
-                            serialOut += "F";
+                            serialOut[i] = 15;
                             break;
                     }
                 }
-                System.out.println(hapticOut);
-                System.out.println(serialOut);
+                //System.out.println(hapticOut);
+                System.out.println(Arrays.toString(serialOut));
+                LiDARQ.put(new ThreeTuple(serialOut,0, priority));
             } catch (Exception e) {
                 e.printStackTrace();
             }

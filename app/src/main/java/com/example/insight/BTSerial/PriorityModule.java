@@ -6,12 +6,21 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class PriorityModule implements Runnable{
     private Context context;
-    private static ArrayBlockingQueue<byte[]> LiDARQ;
-    private static ArrayBlockingQueue<byte[]> MapQ;
-    private static ArrayBlockingQueue<byte[]> CameraQ;
+    private static ArrayBlockingQueue<ThreeTuple> liDARQ;
+    private static ArrayBlockingQueue<ThreeTuple> mapQ;
+    private static ArrayBlockingQueue<ThreeTuple> cameraQ;
 
     public PriorityModule(Context context){
         this.context = context;
+        if (liDARQ == null){
+            liDARQ = new ArrayBlockingQueue<>(100);
+        }
+        if (mapQ == null){
+            mapQ = new ArrayBlockingQueue<>(100);
+        }
+        if (cameraQ == null){
+            cameraQ = new ArrayBlockingQueue<>(100);
+        }
     }
 
     @Override
@@ -25,15 +34,15 @@ public class PriorityModule implements Runnable{
         }
     }
 
-    public static ArrayBlockingQueue<byte[]> getliDARQ(){
-        return PriorityModule.LiDARQ;
+    public static ArrayBlockingQueue<ThreeTuple> getliDARQ(){
+        return PriorityModule.liDARQ;
     }
 
-    public static ArrayBlockingQueue<byte[]> getMapQ(){
-        return PriorityModule.MapQ;
+    public static ArrayBlockingQueue<ThreeTuple> getMapQ(){
+        return PriorityModule.mapQ;
     }
 
-    public static ArrayBlockingQueue<byte[]> getCameraQ(){
-        return PriorityModule.CameraQ;
+    public static ArrayBlockingQueue<ThreeTuple> getCameraQ(){
+        return PriorityModule.cameraQ;
     }
 }
