@@ -26,7 +26,7 @@ import lidar.LidarModule.LidarRenderer;
 
 public class LidarActivity extends AppCompatActivity{
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "LidarActivity";
 
     protected Intent intent;
     protected Button testButton, getInfoBbutton, threeDButton, exitButton;
@@ -58,7 +58,7 @@ public class LidarActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_lidar);
         try {
             UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
             lidarHelper = new LidarHelper(manager);
