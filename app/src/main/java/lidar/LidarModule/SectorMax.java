@@ -13,13 +13,14 @@ public class SectorMax implements Callable<Integer> {
         this.top = top;
         this.bottom = bottom;
         this.frame = frame;
+        //System.out.println("L: " + left + " R: " + right + " T: " + top + " B: " + bottom);
     }
 
     @Override
     public Integer call() throws Exception {
         int max = 5000;
-        for (int i = top; i < bottom; i++){
-            for(int j = left + i*FRAME_WIDTH; j < right+i*FRAME_WIDTH; j++){
+        for (int i = top; i < bottom; i+=2){
+            for(int j = left + i*FRAME_WIDTH; j < right+i*FRAME_WIDTH; j+=2){
                 max = Math.min(max, frame[j]);
             }
         }

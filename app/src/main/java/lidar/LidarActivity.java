@@ -14,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.insight.BTSerial.PriorityModule;
 import com.example.insight.R;
 
 import java.io.IOException;
@@ -40,6 +42,7 @@ public class LidarActivity extends AppCompatActivity{
     protected Thread hapticThread;
     protected Looper looper;
     protected Handler handler;
+    protected Thread priorityThread;
     @Override
     protected void onDestroy() {
         try {
@@ -74,6 +77,12 @@ public class LidarActivity extends AppCompatActivity{
             }
         }
         setupUI();
+        //TODO: Move priority thread to Main Activity
+        if (priorityThread == null){
+            priorityThread = new Thread(new PriorityModule(this));
+            priorityThread.setName("PriorityThread");
+            priorityThread.start();
+        }
         if (dataThread == null) {
             dataThread = new Thread(new DataHandler());
             dataThread.setPriority(Thread.MAX_PRIORITY);
@@ -95,6 +104,7 @@ public class LidarActivity extends AppCompatActivity{
             hapticThread.setName("ThreadPool");
             hapticThread.start();
         }
+
     }
 
     public void setupUI() {

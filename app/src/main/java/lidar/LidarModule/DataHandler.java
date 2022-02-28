@@ -76,9 +76,9 @@ public class DataHandler implements Runnable {
         }else if(check1 && bite == _56_0x38){
             check2 = true;
         }else if(check2 && bite == _8_0x8){
-            Thread t = new Thread(new tPrint(""+ frame[0] +":"+ dataIndex));
-            t.setName("Printer");
-            t.start();
+//            Thread t = new Thread(new tPrint(""+ frame[0] +":"+ dataIndex));
+//            t.setName("Printer");
+//            t.start();
             if (dataIndex == 14407) frameQ.add(frame.clone());
             dataIndex = 0;
             //frameQ.add(frame.clone());

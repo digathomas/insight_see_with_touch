@@ -12,14 +12,14 @@ public class PriorityModule implements Runnable{
 
     public PriorityModule(Context context){
         this.context = context;
-        if (liDARQ == null){
-            liDARQ = new ArrayBlockingQueue<>(100);
+        if (PriorityModule.liDARQ == null){
+            PriorityModule.liDARQ = new ArrayBlockingQueue<>(100);
         }
-        if (mapQ == null){
-            mapQ = new ArrayBlockingQueue<>(100);
+        if (PriorityModule.mapQ == null){
+            PriorityModule.mapQ = new ArrayBlockingQueue<>(100);
         }
-        if (cameraQ == null){
-            cameraQ = new ArrayBlockingQueue<>(100);
+        if (PriorityModule.cameraQ == null){
+            PriorityModule.cameraQ = new ArrayBlockingQueue<>(100);
         }
     }
 
@@ -27,7 +27,7 @@ public class PriorityModule implements Runnable{
     public void run(){
         while(true){
             try{
-
+                cameraQ.take();
             }catch(Exception e){
                 e.printStackTrace();
             }
