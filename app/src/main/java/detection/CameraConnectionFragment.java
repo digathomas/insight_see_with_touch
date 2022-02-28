@@ -33,7 +33,6 @@ import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.text.TextUtils;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.*;
@@ -44,7 +43,6 @@ import detection.customview.AutoFitTextureView;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 @SuppressLint("ValidFragment")
 public class CameraConnectionFragment extends Fragment {

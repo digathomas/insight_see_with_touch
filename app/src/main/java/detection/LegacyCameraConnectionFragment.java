@@ -16,7 +16,6 @@ package detection;
  * limitations under the License.
  */
 
-import androidx.annotation.RequiresOptIn;
 import androidx.fragment.app.Fragment;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;

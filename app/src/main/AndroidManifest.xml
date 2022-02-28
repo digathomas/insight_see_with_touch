@@ -17,6 +17,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Insight">
         <activity
+            android:name="detection.DetectorActivity">
+        </activity>
+        <activity
+            android:name="lidar.LidarActivity">
+        </activity>
+        <activity
             android:name=".GpsActivity">
         </activity>
         <activity

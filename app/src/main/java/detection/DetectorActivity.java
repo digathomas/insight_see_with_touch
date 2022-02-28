@@ -25,6 +25,7 @@ import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 import com.example.insight.R;
+import detection.CameraActivity;
 import detection.customview.OverlayView;
 import detection.customview.OverlayView.DrawCallback;
 import detection.env.BorderedText;
@@ -36,8 +37,6 @@ import detection.tracking.MultiBoxTracker;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * An activity that uses a TensorFlowMultiBoxDetector and ObjectTracker to detect and then track

@@ -83,85 +83,88 @@ public abstract class CameraActivity extends AppCompatActivity
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
 //    LOGGER.d("onCreate " + this);
-    super.onCreate(null);
-    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    try {
+      super.onCreate(null);
+      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    setContentView(R.layout.tfe_od_activity_camera);
-    Toolbar toolbar = findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
-    getSupportActionBar().setDisplayShowTitleEnabled(false);
+      setContentView(R.layout.tfe_od_activity_camera);
+      Toolbar toolbar = findViewById(R.id.toolbar);
+//      setSupportActionBar(toolbar);
+//      getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-    if (hasPermission()) {
-      setFragment();
-    } else {
-      requestPermission();
+      if (hasPermission()) {
+        setFragment();
+      } else {
+        requestPermission();
+      }
+
+      threadsTextView = findViewById(R.id.threads);
+      plusImageView = findViewById(R.id.plus);
+      minusImageView = findViewById(R.id.minus);
+      apiSwitchCompat = findViewById(R.id.api_info_switch);
+      bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
+      gestureLayout = findViewById(R.id.gesture_layout);
+      sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
+      bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
+      detectedTextView = findViewById(R.id.detectedTextView);
+
+      ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
+      vto.addOnGlobalLayoutListener(
+              new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                    gestureLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                  } else {
+                    gestureLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                  }
+                  //                int width = bottomSheetLayout.getMeasuredWidth();
+                  int height = gestureLayout.getMeasuredHeight();
+
+                  sheetBehavior.setPeekHeight(height);
+                }
+              });
+      sheetBehavior.setHideable(false);
+
+      sheetBehavior.setBottomSheetCallback(
+              new BottomSheetBehavior.BottomSheetCallback() {
+                @Override
+                public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                  switch (newState) {
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                      break;
+                    case BottomSheetBehavior.STATE_EXPANDED: {
+                      bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_down);
+                    }
+                    break;
+                    case BottomSheetBehavior.STATE_COLLAPSED: {
+                      bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
+                    }
+                    break;
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                      break;
+                    case BottomSheetBehavior.STATE_SETTLING:
+                      bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
+                      break;
+                  }
+                }
+
+                @Override
+                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                }
+              });
+
+      frameValueTextView = findViewById(R.id.frame_info);
+      cropValueTextView = findViewById(R.id.crop_info);
+      inferenceTimeTextView = findViewById(R.id.inference_info);
+
+      apiSwitchCompat.setOnCheckedChangeListener(this);
+
+      plusImageView.setOnClickListener(this);
+      minusImageView.setOnClickListener(this);
+    }catch (Exception e){
+      e.printStackTrace();
     }
-
-    threadsTextView = findViewById(R.id.threads);
-    plusImageView = findViewById(R.id.plus);
-    minusImageView = findViewById(R.id.minus);
-    apiSwitchCompat = findViewById(R.id.api_info_switch);
-    bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
-    gestureLayout = findViewById(R.id.gesture_layout);
-    sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-    bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
-    detectedTextView = findViewById(R.id.detectedTextView);
-
-    ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
-    vto.addOnGlobalLayoutListener(
-        new ViewTreeObserver.OnGlobalLayoutListener() {
-          @Override
-          public void onGlobalLayout() {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-              gestureLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-            } else {
-              gestureLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-            //                int width = bottomSheetLayout.getMeasuredWidth();
-            int height = gestureLayout.getMeasuredHeight();
-
-            sheetBehavior.setPeekHeight(height);
-          }
-        });
-    sheetBehavior.setHideable(false);
-
-    sheetBehavior.setBottomSheetCallback(
-        new BottomSheetBehavior.BottomSheetCallback() {
-          @Override
-          public void onStateChanged(@NonNull View bottomSheet, int newState) {
-            switch (newState) {
-              case BottomSheetBehavior.STATE_HIDDEN:
-                break;
-              case BottomSheetBehavior.STATE_EXPANDED:
-                {
-                  bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_down);
-                }
-                break;
-              case BottomSheetBehavior.STATE_COLLAPSED:
-                {
-                  bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
-                }
-                break;
-              case BottomSheetBehavior.STATE_DRAGGING:
-                break;
-              case BottomSheetBehavior.STATE_SETTLING:
-                bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
-                break;
-            }
-          }
-
-          @Override
-          public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
-        });
-
-    frameValueTextView = findViewById(R.id.frame_info);
-    cropValueTextView = findViewById(R.id.crop_info);
-    inferenceTimeTextView = findViewById(R.id.inference_info);
-
-    apiSwitchCompat.setOnCheckedChangeListener(this);
-
-    plusImageView.setOnClickListener(this);
-    minusImageView.setOnClickListener(this);
   }
 
   protected int[] getRgbBytes() {

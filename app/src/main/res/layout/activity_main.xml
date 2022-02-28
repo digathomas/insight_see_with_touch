@@ -6,6 +6,25 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+            android:id="@+id/lidarButton"
+            android:layout_width="150dp"
+            android:layout_height="114dp"
+            android:text="Lidar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView_title"
+            app:layout_constraintVertical_bias="0.358"
+            android:layout_marginStart="60dp" app:layout_constraintStart_toEndOf="@+id/button_maps"/>
+    <Button
+            android:id="@+id/ObjDetectButton"
+            android:layout_width="150dp"
+            android:layout_height="114dp"
+            android:text="ObjDetect"
+            app:layout_constraintTop_toBottomOf="@+id/textView_title"
+            android:layout_marginStart="60dp"
+            app:layout_constraintStart_toEndOf="@+id/button_visualizer"
+            android:layout_marginBottom="26dp" app:layout_constraintBottom_toTopOf="@+id/lidarButton"
+            app:layout_constraintVertical_bias="1.0"/>
     <TextView
         android:id="@+id/textView_title"
         android:layout_width="wrap_content"

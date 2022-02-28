@@ -12,11 +12,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.insight.R;
+import lidar.DataHandler;
+import lidar.LidarHelper;
+import lidar.LidarRenderer;
 
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity{
-    private static final String TAG = "MainActivity";
+public class LidarActivity extends AppCompatActivity{
 
     protected Intent intent;
     protected Button testButton, getInfoBbutton, threeDButton, exitButton;
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_lidar);
         try {
             UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
             lidarHelper = new LidarHelper(manager);
