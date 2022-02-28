@@ -12,11 +12,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.insight.R;
-import lidar.DataHandler;
-import lidar.LidarHelper;
-import lidar.LidarRenderer;
 
 import java.io.IOException;
+
+import lidar.LidarModule.DataHandler;
+import lidar.LidarModule.LidarHelper;
+import lidar.LidarModule.LidarRenderer;
 
 public class LidarActivity extends AppCompatActivity{
 
