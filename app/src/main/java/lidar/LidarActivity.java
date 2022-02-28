@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -15,11 +18,15 @@ import com.example.insight.R;
 
 import java.io.IOException;
 
+import lidar.LidarModule.BitmapGenerator;
 import lidar.LidarModule.DataHandler;
+import lidar.LidarModule.DataPoolScheduler;
 import lidar.LidarModule.LidarHelper;
 import lidar.LidarModule.LidarRenderer;
 
 public class LidarActivity extends AppCompatActivity{
+
+    private static final String TAG = "MainActivity";
 
     protected Intent intent;
     protected Button testButton, getInfoBbutton, threeDButton, exitButton;
@@ -28,12 +35,20 @@ public class LidarActivity extends AppCompatActivity{
     protected LidarHelper lidarHelper;
     protected Thread dataThread;
     protected Thread renderThread;
-
+    protected HandlerThread handlerThread;
+    protected Thread bitmapThread;
+    protected Thread hapticThread;
+    protected Looper looper;
+    protected Handler handler;
     @Override
     protected void onDestroy() {
         try {
             LidarHelper.closePort();
             dataThread.join();
+            renderThread.join();
+            dataThread.join();
+            handlerThread.join();
+            hapticThread.join();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -43,7 +58,7 @@ public class LidarActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_lidar);
+        setContentView(R.layout.activity_main);
         try {
             UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
             lidarHelper = new LidarHelper(manager);
@@ -62,11 +77,23 @@ public class LidarActivity extends AppCompatActivity{
         if (dataThread == null) {
             dataThread = new Thread(new DataHandler());
             dataThread.setPriority(Thread.MAX_PRIORITY);
+            dataThread.setName("dataThread");
             dataThread.start();
         }
         if (renderThread == null) {
             renderThread = new Thread(new LidarRenderer(this, bitmapImageView));
+            dataThread.setName("renderThread");
             renderThread.start();
+        }
+        if (bitmapThread == null){
+            bitmapThread = new Thread(new BitmapGenerator());
+            bitmapThread.setName("Bitmap Thread");
+            bitmapThread.start();
+        }
+        if (hapticThread == null){
+            hapticThread = new Thread(new DataPoolScheduler());
+            hapticThread.setName("ThreadPool");
+            hapticThread.start();
         }
     }
 
