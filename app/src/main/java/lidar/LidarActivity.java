@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.insight.BTSerial.PriorityModule;
 import com.example.insight.MainActivity;
 import com.example.insight.R;
 
@@ -39,6 +40,7 @@ public class LidarActivity {
     protected HandlerThread handlerThread;
     protected Thread bitmapThread;
     protected Thread hapticThread;
+    protected Thread priorityThread;
     protected Looper looper;
     protected Handler handler;
     private Context context;
@@ -77,6 +79,11 @@ public class LidarActivity {
 //        }
 //        setupUI();
         this.bitmapImageView = MainActivity.getBitmapImageView();
+        if (priorityThread == null){
+            priorityThread = new Thread(new PriorityModule(this.context));
+            priorityThread.setName("PriorityThread");
+            priorityThread.start();
+        }
         if (dataThread == null) {
             dataThread = new Thread(new DataHandler());
             dataThread.setPriority(Thread.MAX_PRIORITY);
@@ -85,7 +92,7 @@ public class LidarActivity {
         }
         if (renderThread == null) {
             renderThread = new Thread(new LidarRenderer(this.context, bitmapImageView));
-            dataThread.setName("renderThread");
+            renderThread.setName("renderThread");
             renderThread.start();
         }
         if (bitmapThread == null){
