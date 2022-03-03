@@ -35,7 +35,7 @@ public class BitmapGenerator implements Runnable{
                 //TODO: change to peek
                 try {
                     int[] data = new int[20];
-                    ThreeTuple<int[]> item = liDARQ.peek();
+                    ThreeTuple<int[]> item = liDARQ.take();
                     if (item != null) {
                         data = item.getData();
                     }
