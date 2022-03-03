@@ -66,19 +66,6 @@ public class LidarRenderer implements Runnable {
                     frameInt[frameIndex++] = makeColor(second);
                 }
                 hapticQ.put(hapticInt.clone());
-                colorQ.put(frameInt.clone());
-                Bitmap oldBitmap = newBitmap;
-                newBitmap = bitmapQ.take();
-                //newBitmap = Bitmap.createBitmap(frameInt, 160, 60, Bitmap.Config.ARGB_8888);
-                runOnUiThread(new Runnable(){
-                            @Override
-                            public void run(){
-                                bitmapImageView.setImageBitmap(newBitmap);
-                            }
-                        }
-                );
-                oldBitmap.recycle();
-                System.gc();
                 if (MainActivity.lidarUiState) {
                     colorQ.put(frameInt.clone());
                     oldBitmap = newBitmap;
