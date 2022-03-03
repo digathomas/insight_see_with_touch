@@ -3,6 +3,7 @@ package lidar.LidarModule;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 
+import android.os.Process;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
@@ -30,7 +31,7 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
 
     public LidarHelper(UsbManager manager) {
         if (LidarHelper.dataQ == null){
-            LidarHelper.dataQ = new ArrayBlockingQueue<>(5000);
+            LidarHelper.dataQ = new ArrayBlockingQueue<>(1000);
         }
         if (LidarHelper.usbManager == null) {
             LidarHelper.usbManager = manager;
@@ -61,7 +62,8 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
                 port.setParameters(BAUD_RATE_3M, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 LidarHelper.connection = connection;
                 ioManager = new SerialInputOutputManager(port, this);
-                ioManager.setReadBufferSize(1000);
+                ioManager.setThreadPriority(-19);
+                ioManager.setReadBufferSize(500);
                 //ioManager.setThreadPriority(19);
                 ioManager.start();
             } catch (IOException e) {
