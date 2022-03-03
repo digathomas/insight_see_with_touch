@@ -11,18 +11,21 @@ public class Scheduler implements Runnable{
         while (true){
             try{
                 ThreeTuple<int[]> tuple = scheduleQ.take();
-                if (tuple.getDeadline().isAfter(Instant.now())){
-                    //TODO: send to BT serial
-                    int delay = tuple.getPriority();
-                    wait(delay);
-                }
+                //if (tuple.getDeadline().isAfter(Instant.now())){
+                //TODO: send to BT serial
+                    //int delay = tuple.getPriority();
+                    //wait(delay);
             }catch (Exception ignored){
 
             }
         }
     }
 
-    private void enqueue(int[] data, Instant deadline, int delay){
+    public void enqueue(int[] data, Instant deadline, int delay){
         scheduleQ.offer(new ThreeTuple<>(data, deadline, delay));
+    }
+
+    public void enqueue(ThreeTuple<int[]> tuple){
+        scheduleQ.offer(new ThreeTuple<>(tuple.getData(), tuple.getDeadline(), 0));
     }
 }
