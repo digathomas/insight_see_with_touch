@@ -4,7 +4,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.*;
 
 public class DataHandler implements Runnable {
     private static ArrayBlockingQueue<byte[]> dataQ;
@@ -29,7 +29,7 @@ public class DataHandler implements Runnable {
     private static boolean check2 = false;
     protected HandlerThread handlerThread;
     protected Looper looper;
-    protected Handler handler;
+    protected static Handler handler;
 
     public DataHandler() {
         if (frame == null) {
@@ -39,11 +39,11 @@ public class DataHandler implements Runnable {
             frameQ = new ArrayBlockingQueue<>(10);
         }
         dataQ = lidar.LidarModule.LidarHelper.getDataQ();
-        handlerThread = new HandlerThread("DataHandlerThreads");
-        handlerThread.setPriority(10);
-        handlerThread.start();
-        looper = handlerThread.getLooper();
-        handler  = new Handler(looper);
+//        executor = Executors.newSingleThreadExecutor();
+//        handlerThread = new HandlerThread("DHandler_print");
+//        handlerThread.start();
+//        looper = handlerThread.getLooper();
+//        handler  = new Handler(looper);
         //this.dataLength = data.length;
     }
 
@@ -51,15 +51,19 @@ public class DataHandler implements Runnable {
     public void run() {
         while (true) {
             try {
-                byte[] arr = dataQ.take();
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (byte b : arr) {
-                            streamingHeader(b);
-                        }
-                    }
-                });
+                for (byte b : dataQ.take()) {
+                    streamingHeader(b);
+                }
+//                byte[] arr = dataQ.take();
+//                executor.submit(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        for (byte b : arr) {
+//                            streamingHeader(b);
+//                        }
+//                    }
+//                });
+
             } catch (ArrayIndexOutOfBoundsException arrEx) {
                 dataIndex = 0;
             } catch (Exception e) {
@@ -76,9 +80,8 @@ public class DataHandler implements Runnable {
         }else if(check1 && bite == _56_0x38){
             check2 = true;
         }else if(check2 && bite == _8_0x8){
-//            Thread t = new Thread(new tPrint(""+ frame[0] +":"+ dataIndex));
-//            t.setName("Printer");
-//            t.start();
+            System.out.println(""+ frame[0] +":"+ dataIndex);
+
             if (dataIndex == 14407) frameQ.add(frame.clone());
             dataIndex = 0;
             //frameQ.add(frame.clone());

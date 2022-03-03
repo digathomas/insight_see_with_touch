@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+            android:id="@+id/lidar_on"
+            android:title="Lidar On"
+    />
+    <item
+            android:id="@+id/lidar_off"
+            android:title="Lidar Off"
+    />
+    <item
+            android:id="@+id/lidar_bitmap"
+            android:title="Lidar Screen"
+    />
+    <item
+            android:id="@+id/objDetectSwitch"
+            android:title="Object Detection"
+    />
+
+</menu>

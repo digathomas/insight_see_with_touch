@@ -17,6 +17,7 @@
 package detection;
 
 import android.Manifest;
+import android.app.Activity;
 import androidx.fragment.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -40,13 +41,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
 import com.example.insight.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import detection.env.ImageUtils;
 
 import java.nio.ByteBuffer;
 
-public abstract class CameraActivity extends AppCompatActivity
+public abstract class CameraActivity
     implements OnImageAvailableListener,
         Camera.PreviewCallback,
         CompoundButton.OnCheckedChangeListener,
@@ -59,8 +61,8 @@ public abstract class CameraActivity extends AppCompatActivity
   protected int previewWidth = 0;
   protected int previewHeight = 0;
   private boolean debug = false;
-  private Handler handler;
-  private HandlerThread handlerThread;
+  public Handler handler;
+  public HandlerThread handlerThread;
   private boolean useCamera2API;
   private boolean isProcessingFrame = false;
   private byte[][] yuvBytes = new byte[3][];
@@ -79,92 +81,19 @@ public abstract class CameraActivity extends AppCompatActivity
   private SwitchCompat apiSwitchCompat;
   private TextView threadsTextView;
   private TextView detectedTextView;
+  protected Activity activity;
+  protected Context context;
+  protected FragmentManager fragmentManager;
 
-  @Override
-  protected void onCreate(final Bundle savedInstanceState) {
-//    LOGGER.d("onCreate " + this);
-    try {
-      super.onCreate(null);
-      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+  public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager){
+    this.context = context;
+    this.activity = activity;
+    this.fragmentManager = fragmentManager;
 
-      setContentView(R.layout.tfe_od_activity_camera);
-      Toolbar toolbar = findViewById(R.id.toolbar);
-//      setSupportActionBar(toolbar);
-//      getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-      if (hasPermission()) {
-        setFragment();
-      } else {
-        requestPermission();
-      }
-
-      threadsTextView = findViewById(R.id.threads);
-      plusImageView = findViewById(R.id.plus);
-      minusImageView = findViewById(R.id.minus);
-      apiSwitchCompat = findViewById(R.id.api_info_switch);
-      bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
-      gestureLayout = findViewById(R.id.gesture_layout);
-      sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-      bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
-      detectedTextView = findViewById(R.id.detectedTextView);
-
-      ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
-      vto.addOnGlobalLayoutListener(
-              new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                    gestureLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                  } else {
-                    gestureLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                  }
-                  //                int width = bottomSheetLayout.getMeasuredWidth();
-                  int height = gestureLayout.getMeasuredHeight();
-
-                  sheetBehavior.setPeekHeight(height);
-                }
-              });
-      sheetBehavior.setHideable(false);
-
-      sheetBehavior.setBottomSheetCallback(
-              new BottomSheetBehavior.BottomSheetCallback() {
-                @Override
-                public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                  switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN:
-                      break;
-                    case BottomSheetBehavior.STATE_EXPANDED: {
-                      bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_down);
-                    }
-                    break;
-                    case BottomSheetBehavior.STATE_COLLAPSED: {
-                      bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
-                    }
-                    break;
-                    case BottomSheetBehavior.STATE_DRAGGING:
-                      break;
-                    case BottomSheetBehavior.STATE_SETTLING:
-                      bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
-                      break;
-                  }
-                }
-
-                @Override
-                public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                }
-              });
-
-      frameValueTextView = findViewById(R.id.frame_info);
-      cropValueTextView = findViewById(R.id.crop_info);
-      inferenceTimeTextView = findViewById(R.id.inference_info);
-
-      apiSwitchCompat.setOnCheckedChangeListener(this);
-
-      plusImageView.setOnClickListener(this);
-      minusImageView.setOnClickListener(this);
-    }catch (Exception e){
-      e.printStackTrace();
-    }
+    setFragment();
+    handlerThread = new HandlerThread("inference");
+    handlerThread.start();
+    handler = new Handler(handlerThread.getLooper());
   }
 
   protected int[] getRgbBytes() {
@@ -184,7 +113,6 @@ public abstract class CameraActivity extends AppCompatActivity
   @Override
   public void onPreviewFrame(final byte[] bytes, final Camera camera) {
     if (isProcessingFrame) {
-//      LOGGER.w("Dropping frame!");
       return;
     }
 
@@ -289,112 +217,14 @@ public abstract class CameraActivity extends AppCompatActivity
     Trace.endSection();
   }
 
-  @Override
-  public synchronized void onStart() {
-//    LOGGER.d("onStart " + this);
-    super.onStart();
-  }
-
-  @Override
-  public synchronized void onResume() {
-//    LOGGER.d("onResume " + this);
-    super.onResume();
-
-    handlerThread = new HandlerThread("inference");
-    handlerThread.start();
-    handler = new Handler(handlerThread.getLooper());
-  }
-
-  @Override
-  public synchronized void onPause() {
-//    LOGGER.d("onPause " + this);
-
-    handlerThread.quitSafely();
-    try {
-      handlerThread.join();
-      handlerThread = null;
-      handler = null;
-    } catch (final InterruptedException e) {
-//      LOGGER.e(e, "Exception!");
-    }
-
-    super.onPause();
-  }
-
-  @Override
-  public synchronized void onStop() {
-//    LOGGER.d("onStop " + this);
-    super.onStop();
-  }
-
-  @Override
-  public synchronized void onDestroy() {
-//    LOGGER.d("onDestroy " + this);
-    super.onDestroy();
-  }
-
   protected synchronized void runInBackground(final Runnable r) {
     if (handler != null) {
       handler.post(r);
     }
   }
 
-  @Override
-  public void onRequestPermissionsResult(
-      final int requestCode, final String[] permissions, final int[] grantResults) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    if (requestCode == PERMISSIONS_REQUEST) {
-      if (allPermissionsGranted(grantResults)) {
-        setFragment();
-      } else {
-        requestPermission();
-      }
-    }
-  }
-
-  private static boolean allPermissionsGranted(final int[] grantResults) {
-    for (int result : grantResults) {
-      if (result != PackageManager.PERMISSION_GRANTED) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private boolean hasPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      return checkSelfPermission(PERMISSION_CAMERA) == PackageManager.PERMISSION_GRANTED;
-    } else {
-      return true;
-    }
-  }
-
-  private void requestPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (shouldShowRequestPermissionRationale(PERMISSION_CAMERA)) {
-        Toast.makeText(
-                CameraActivity.this,
-                "Camera permission is required for this demo",
-                Toast.LENGTH_LONG)
-            .show();
-      }
-      requestPermissions(new String[] {PERMISSION_CAMERA}, PERMISSIONS_REQUEST);
-    }
-  }
-
-  // Returns true if the device supports the required hardware level, or better.
-  private boolean isHardwareLevelSupported(
-      CameraCharacteristics characteristics, int requiredLevel) {
-    int deviceLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
-    if (deviceLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
-      return requiredLevel == deviceLevel;
-    }
-    // deviceLevel is not LEGACY, can use numerical sort
-    return requiredLevel <= deviceLevel;
-  }
-
   private String chooseCamera() {
-    final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+    final CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
     try {
       for (final String cameraId : manager.getCameraIdList()) {
         final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
@@ -416,9 +246,7 @@ public abstract class CameraActivity extends AppCompatActivity
         // This should help with legacy situations where using the camera2 API causes
         // distorted or otherwise broken previews.
         useCamera2API =
-            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
-                || isHardwareLevelSupported(
-                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
+            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL);
 //        LOGGER.i("Camera API lv2?: %s", useCamera2API);
         return cameraId;
       }
@@ -429,7 +257,7 @@ public abstract class CameraActivity extends AppCompatActivity
     return null;
   }
 
-  protected void setFragment() {
+  public void setFragment() {
     String cameraId = chooseCamera();
 
     Fragment fragment;
@@ -455,7 +283,7 @@ public abstract class CameraActivity extends AppCompatActivity
           new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
     }
 
-    getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
+    fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
   }
 
   protected void fillBytes(final Plane[] planes, final byte[][] yuvBytes) {
@@ -481,18 +309,6 @@ public abstract class CameraActivity extends AppCompatActivity
     }
   }
 
-  protected int getScreenOrientation() {
-    switch (getWindowManager().getDefaultDisplay().getRotation()) {
-      case Surface.ROTATION_270:
-        return 270;
-      case Surface.ROTATION_180:
-        return 180;
-      case Surface.ROTATION_90:
-        return 90;
-      default:
-        return 0;
-    }
-  }
 
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

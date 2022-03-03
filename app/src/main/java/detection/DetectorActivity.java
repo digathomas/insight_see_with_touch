@@ -16,6 +16,8 @@
 
 package detection;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.*;
 import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Style;
@@ -24,6 +26,8 @@ import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
+import androidx.fragment.app.FragmentManager;
+import com.example.insight.MainActivity;
 import com.example.insight.R;
 import detection.CameraActivity;
 import detection.customview.OverlayView;
@@ -77,22 +81,27 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
 
+  public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
+    super(context, activity, fragmentManager);
+  }
+
+
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
     final float textSizePx =
         TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
+            TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, context.getResources().getDisplayMetrics());
     borderedText = new BorderedText(textSizePx);
     borderedText.setTypeface(Typeface.MONOSPACE);
 
-    tracker = new MultiBoxTracker(this);
+    tracker = new MultiBoxTracker(context);
 
     int cropSize = TF_OD_API_INPUT_SIZE;
 
     try {
       detector =
           TFLiteObjectDetectionAPIModel.create(
-              this,
+              context,
               TF_OD_API_MODEL_FILE,
               TF_OD_API_LABELS_FILE,
               TF_OD_API_INPUT_SIZE,
@@ -102,15 +111,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       e.printStackTrace();
       Toast toast =
           Toast.makeText(
-              getApplicationContext(), "Detector could not be initialized", Toast.LENGTH_SHORT);
+              context, "Detector could not be initialized", Toast.LENGTH_SHORT);
       toast.show();
-      finish();
     }
 
     previewWidth = size.getWidth();
     previewHeight = size.getHeight();
 
-    sensorOrientation = rotation - getScreenOrientation();
+    sensorOrientation = rotation;// - getScreenOrientation();
     rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
     croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
 
@@ -123,7 +131,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     cropToFrameTransform = new Matrix();
     frameToCropTransform.invert(cropToFrameTransform);
 
-    trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
+    trackingOverlay = (OverlayView) activity.findViewById(R.id.tracking_overlay);
     trackingOverlay.addCallback(
         new DrawCallback() {
           @Override
@@ -136,6 +144,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
 
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
+    detector.setNumThreads(4);
   }
 
   @Override
@@ -198,27 +207,38 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 mappedRecognitions.add(result);
               }
             }
-
             tracker.trackResults(mappedRecognitions, currTimestamp);
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
+            activity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                String print = "";
+                for (Detector.Recognition result : mappedRecognitions){
+                    print += result.getTitle() + ": " +
+                            result.getLocation().height() + "," +
+                            result.getLocation().width() + "\n";
+                }
 
-            runOnUiThread(
-                new Runnable() {
-                  @Override
-                  public void run() {
-                    String text = "";
-                    for (final Detector.Recognition result : mappedRecognitions){
-                        text += "Detected: " + result.getTitle() + "\n";
-                    }
-                    System.out.println(text);
-                    showDetectedObjects(text);
-                    showFrameInfo(previewWidth + "x" + previewHeight);
-                    showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
-                    showInference(lastProcessingTimeMs + "ms");
-                  }
-                });
+                System.out.println(print + "-------------------");
+              }
+            });
+//            activity.runOnUiThread(
+//                new Runnable() {
+//                  @Override
+//                  public void run() {
+//                    String text = "";
+//                    for (final Detector.Recognition result : mappedRecognitions){
+//                        text += "Detected: " + result.getTitle() + "\n";
+//                    }
+//                    System.out.println(text);
+//                    showDetectedObjects(text);
+//                    showFrameInfo(previewWidth + "x" + previewHeight);
+//                    showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
+//                    showInference(lastProcessingTimeMs + "ms");
+//                  }
+//                });
           }
         });
   }
@@ -233,6 +253,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     return DESIRED_PREVIEW_SIZE;
   }
 
+
   // Which detection model to use: by default uses Tensorflow Object Detection API frozen
   // checkpoints.
   private enum DetectorMode {
@@ -246,9 +267,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           try {
             detector.setUseNNAPI(isChecked);
           } catch (UnsupportedOperationException e) {
-            runOnUiThread(
+            runInBackground(
                 () -> {
-                  Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                  Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
                 });
           }
         });
