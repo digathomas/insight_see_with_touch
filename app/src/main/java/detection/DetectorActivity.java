@@ -207,12 +207,23 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 mappedRecognitions.add(result);
               }
             }
-
             tracker.trackResults(mappedRecognitions, currTimestamp);
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
+            activity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                String print = "";
+                for (Detector.Recognition result : mappedRecognitions){
+                    print += result.getTitle() + ": " +
+                            result.getLocation().height() + "," +
+                            result.getLocation().width() + "\n";
+                }
 
+                System.out.println(print + "-------------------");
+              }
+            });
 //            activity.runOnUiThread(
 //                new Runnable() {
 //                  @Override

@@ -62,7 +62,7 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
                 port.setParameters(BAUD_RATE_3M, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 LidarHelper.connection = connection;
                 ioManager = new SerialInputOutputManager(port, this);
-                ioManager.setThreadPriority(-19);
+                ioManager.setThreadPriority(-20);
                 ioManager.setReadBufferSize(500);
                 //ioManager.setThreadPriority(19);
                 ioManager.start();
