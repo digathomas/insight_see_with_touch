@@ -41,7 +41,12 @@ public class MainActivity extends AppCompatActivity {
     private static OverlayView trackingOverlay ;
     private static ImageView bitmapImageView;
 
-
+    // menu variables to keep track of what's on and off
+    // assuming everything starts at "on" state
+    private static Boolean lidarState = true;
+    private static Boolean objectDetectionState = true;
+    private static Boolean lidarUiState = true;
+    private static Boolean objectDetectionUiState = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
     }else{
         resumeHandlerThread();
     }
+      // turn on lidar on resume by default
+      try {
+          lidarHelper.sendStart3D();
+      } catch (IOException e) {
+          e.printStackTrace();
+      }
   }
 
   @Override
@@ -132,32 +143,73 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.lidar_on:
+            case R.id.lidar_state:
                 try {
+                    if(lidarState){
+                        // turn off lidar sensor
+                        lidarHelper.sendStop();
+                        lidarState = false;
+                        item.setTitle("Lidar: OFF");
+                        return true;
+                    }
+                    // turn on lidar sensor
                     lidarHelper.sendStart3D();
+                    lidarState = true;
+                    item.setTitle("Lidar: ON");
+                    return true;
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    break;
                 }
-                return (true);
-            case R.id.lidar_off:
-                try {
-                    lidarHelper.sendStop();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            case R.id.bitmap_state:
+                if(bitmapImageView.getVisibility() == View.VISIBLE){
+                    bitmapImageView.setVisibility(View.INVISIBLE);
+                } else {
+                    bitmapImageView.setVisibility(View.VISIBLE);
                 }
-                return (true);
-            case R.id.lidar_bitmap:
-                //Turn off bitmap
-                bitmapImageView.setEnabled(!bitmapImageView.isEnabled());
-                return (true);
-            case R.id.objDetectSwitch:
-                if (detectorActivity.handlerThread != null) {
-                    pauseHandlerThread();
+                if(lidarUiState) {
+                    // turn off bitmap
+                    // TODO: turn off bitmap
+                    lidarUiState = false;
+                    item.setTitle("Bitmap: OFF");
+                    return true;
                 }
-                else{
-                    resumeHandlerThread();
+                // turn on bitmap
+                // TODO: turn on bitmap
+                lidarUiState = true;
+                item.setTitle("Bitmap: ON");
+                return true;
+            case R.id.object_detection_state:
+                if (objectDetectionState) {
+                    // turn off object detection
+                    if (detectorActivity.handlerThread != null) {
+                        pauseHandlerThread();
+                    }
+                    // TODO: turn off object detection
+                    objectDetectionState = false;
+                    item.setTitle("Obj Det: OFF");
+                    return true;
                 }
-                return (true);
+                // turn on object detection
+                resumeHandlerThread();
+                // TODO: turn on object detection
+                objectDetectionState = true;
+                item.setTitle("Obj Det: ON");
+                return true;
+            case R.id.camera_state:
+                if(objectDetectionUiState){
+                    // turn off camera feed
+                    // TODO: turn off camera feed
+                    objectDetectionUiState = false;
+                    item.setTitle("Cam Feed: OFF");
+                    return true;
+                }
+                // turn on camera feed
+                // TODO: turn on camera feed
+                objectDetectionUiState = true;
+                item.setTitle("Cam Feed: ON");
+                return true;
         }
         return false;
     }
