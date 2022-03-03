@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+            android:id="@+id/lidar_state"
+            android:title="Lidar: ON"
+    />
+    <item
+            android:id="@+id/bitmap_state"
+            android:title="Bitmap: ON"
+    />
+    <item
+            android:id="@+id/object_detection_state"
+            android:title="Obj Det: ON"
+    />
+    <item
+        android:id="@+id/camera_state"
+        android:title="Cam Feed: ON"
+        />
+
+</menu>
