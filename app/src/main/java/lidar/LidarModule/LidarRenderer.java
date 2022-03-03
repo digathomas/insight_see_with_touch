@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.widget.ImageView;
 
+import com.example.insight.MainActivity;
+
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class LidarRenderer implements Runnable {
@@ -66,23 +68,31 @@ public class LidarRenderer implements Runnable {
                     frameInt[frameIndex++] = makeColor(second);
                 }
                 hapticQ.put(hapticInt.clone());
-                colorQ.put(frameInt.clone());
-                oldBitmap = newBitmap;
-                newBitmap = bitmapQ.take();
-                //newBitmap = Bitmap.createBitmap(frameInt, 160, 60, Bitmap.Config.ARGB_8888);
-                runOnUiThread(new Runnable(){
-                            @Override
-                            public void run(){
-                                bitmapImageView.setImageBitmap(newBitmap);
-                            }
-                        }
-                );
-                oldBitmap.recycle();
-                System.gc();
+                if (MainActivity.lidarUiState) {
+                    colorQ.put(frameInt.clone());
+                    oldBitmap = newBitmap;
+                    newBitmap = bitmapQ.take();
+                    //newBitmap = Bitmap.createBitmap(frameInt, 160, 60, Bitmap.Config.ARGB_8888);
+                    runOnUiThread(new Runnable() {
+                                      @Override
+                                      public void run() {
+                                          bitmapImageView.setImageBitmap(newBitmap);
+                                      }
+                                  }
+                    );
+                    oldBitmap.recycle();
+                    System.gc();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static void stopRender() {
+        colorQ.clear();
+        oldBitmap.recycle();
+        newBitmap.recycle();
     }
 
     private static int makeColor(int value) {

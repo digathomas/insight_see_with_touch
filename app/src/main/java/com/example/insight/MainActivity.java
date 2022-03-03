@@ -25,6 +25,7 @@ import detection.DetectorActivity;
 import detection.customview.OverlayView;
 import lidar.LidarActivity;
 import lidar.LidarModule.LidarHelper;
+import lidar.LidarModule.LidarRenderer;
 
 import java.io.IOException;
 
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     // assuming everything starts at "on" state
     private static Boolean lidarState = true;
     private static Boolean objectDetectionState = true;
-    private static Boolean lidarUiState = true;
+    public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
 
     @Override
@@ -171,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 if(lidarUiState) {
                     // turn off bitmap
                     // TODO: turn off bitmap
+                    lidarActivity. = null;
                     lidarUiState = false;
                     item.setTitle("Bitmap: OFF");
                     return true;
