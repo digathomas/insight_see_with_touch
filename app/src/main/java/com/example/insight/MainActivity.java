@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Thread detectorThread;
     private static OverlayView trackingOverlay ;
+    private static FrameLayout container;
     private static ImageView bitmapImageView;
 
     // menu variables to keep track of what's on and off
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
             requestPermission();
         }
 
+        container = findViewById(R.id.container);
         bitmapImageView = findViewById(R.id.bitmapImageView);
 
         //Lidar Helper
@@ -83,47 +86,36 @@ public class MainActivity extends AppCompatActivity {
         lidarActivity = new LidarActivity(this);
     }
 
-      @Override
-  public synchronized void onStart() {
+    @Override
+    public synchronized void onStart() {
     super.onStart();
-  }
-
-  @Override
-  public synchronized void onResume() {
-    super.onResume();
-    if (detectorActivity == null) {
-        detectorThread = new Thread(() -> {
-            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
-        });
-        detectorThread.start();
-    }else{
-        resumeHandlerThread();
     }
-      // turn on lidar on resume by default
-      try {
+
+    @Override
+    public synchronized void onResume() {
+        super.onResume();
+        if (detectorActivity == null) {
+            detectorThread = new Thread(() -> {
+                detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
+            });
+            detectorThread.start();
+        }else{
+            resumeHandlerThread();
+        }
+
+        // turn on lidar on resume by default
+        try {
           lidarHelper.sendStart3D();
-      } catch (IOException e) {
+        } catch (IOException e) {
           e.printStackTrace();
-      }
-  }
+        }
+    }
 
-  @Override
-  public synchronized void onPause() {
-      pauseHandlerThread();
-      super.onPause();
-  }
-
-//  @Override
-//  public synchronized void onStop() {
-////    LOGGER.d("onStop " + this);
-//    super.onStop();
-//  }
-//
-//  @Override
-//  public synchronized void onDestroy() {
-////    LOGGER.d("onDestroy " + this);
-//    super.onDestroy();
-//  }
+    @Override
+    public synchronized void onPause() {
+        super.onPause();
+        pauseHandlerThread();
+    }
 
     @Override
     public void onRequestPermissionsResult(
@@ -135,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_list, menu);
@@ -171,35 +164,33 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if(lidarUiState) {
                     // turn off bitmap
-                    // TODO: turn off bitmap
-                    lidarActivity. = null;
-                    lidarUiState = false;
+                    lidarUiState = false; // LidarRenderer runnable checks for this variable state
                     item.setTitle("Bitmap: OFF");
                     return true;
                 }
                 // turn on bitmap
-                // TODO: turn on bitmap
                 lidarUiState = true;
                 item.setTitle("Bitmap: ON");
                 return true;
             case R.id.object_detection_state:
                 if (objectDetectionState) {
                     // turn off object detection
-                    if (detectorActivity.handlerThread != null) {
-                        pauseHandlerThread();
-                    }
-                    // TODO: turn off object detection
+                    pauseHandlerThread();
                     objectDetectionState = false;
                     item.setTitle("Obj Det: OFF");
                     return true;
                 }
                 // turn on object detection
                 resumeHandlerThread();
-                // TODO: turn on object detection
                 objectDetectionState = true;
                 item.setTitle("Obj Det: ON");
                 return true;
             case R.id.camera_state:
+                if(container.getVisibility() == View.VISIBLE){
+                    container.setVisibility(View.GONE);
+                } else {
+                    container.setVisibility(View.VISIBLE);
+                }
                 if(objectDetectionUiState){
                     // turn off camera feed
                     // TODO: turn off camera feed
@@ -217,12 +208,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resumeHandlerThread(){
-        if (detectorActivity != null) {
-            HandlerThread hThread = new HandlerThread("inference");
-            detectorActivity.handlerThread = hThread;
-            hThread.start();
-            detectorActivity.handler = new Handler(hThread.getLooper());
-        }
+        detectorThread = new Thread(() -> {
+            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
+        });
+        detectorThread.start();
     }
 
     private void pauseHandlerThread(){
@@ -230,11 +219,11 @@ public class MainActivity extends AppCompatActivity {
             detectorActivity.handlerThread.quitSafely();
             try {
                 detectorActivity.handlerThread.join();
-                detectorActivity.handlerThread = null;
-                detectorActivity.handler = null;
-            } catch (final InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            detectorActivity.handlerThread = null;
+            detectorActivity.handler = null;
         }
     }
 
@@ -245,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     }
-
 
     private void requestPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -276,4 +264,5 @@ public class MainActivity extends AppCompatActivity {
     public static ImageView getBitmapImageView(){
         return bitmapImageView;
     }
+
 }

@@ -91,6 +91,10 @@ public abstract class CameraActivity
     this.fragmentManager = fragmentManager;
 
     setFragment();
+    initializeHandlers();
+  }
+
+  public void initializeHandlers() {
     handlerThread = new HandlerThread("inference");
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
