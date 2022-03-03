@@ -15,7 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class BitmapGenerator implements Runnable{
     private static ArrayBlockingQueue<Bitmap> bitmapQ;
-    private static ArrayBlockingQueue<ThreeTuple> liDARQ;
+    private static ArrayBlockingQueue<ThreeTuple<int[]>> liDARQ;
     private static ArrayBlockingQueue<int[]> colorQ;
 
     public BitmapGenerator(){
@@ -34,7 +34,11 @@ public class BitmapGenerator implements Runnable{
                 System.gc();
                 //TODO: change to peek
                 try {
-                    int[] data = liDARQ.take().getData();
+                    int[] data = new int[20];
+                    ThreeTuple<int[]> item = liDARQ.peek();
+                    if (item != null) {
+                        data = item.getData();
+                    }
                     Canvas canvas = new Canvas(bitmap);
                     // new antialised Paint
                     Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -44,12 +48,6 @@ public class BitmapGenerator implements Runnable{
                     paint.setTextSize((int) 8);
                     Rect bounds = new Rect();
                     paint.getTextBounds(Arrays.toString(data), 0, Arrays.toString(data).length(), bounds);
-                    int x = (bitmap.getWidth() - bounds.width())/6;
-                    int y = (bitmap.getHeight() + bounds.height())/5;
-
-                    //String formattedString = "";
-                    String upper = "";
-                    String lower = "";
                     for (int i = 1; i < 8; i++){
                         canvas.drawLine(i*20-1,0,i*20-1,59, paint);
                     }
@@ -61,10 +59,6 @@ public class BitmapGenerator implements Runnable{
                             canvas.drawText(String.valueOf(data[i]), ((int)(i/2))*160/8-15, 45, paint);
                         }
                     }
-                    //formattedString = upper + "\n" + lower;
-                    //System.out.println(formattedString);
-                    //canvas.drawText(upper, x , y , paint);
-                    //canvas.drawText(lower, x, 3*y, paint);
                 }catch (Exception ignored){
                     ignored.printStackTrace();
                 }

@@ -3,6 +3,7 @@ package lidar.LidarModule;
 import com.example.insight.BTSerial.PriorityModule;
 import com.example.insight.BTSerial.ThreeTuple;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class DataPoolScheduler implements Runnable {
     private static ArrayBlockingQueue<int[]> hapticQ;
-    private static ArrayBlockingQueue<ThreeTuple> LiDARQ;
+    private static ArrayBlockingQueue<ThreeTuple<int[]>> LiDARQ;
     private ThreadPoolExecutor executor;
     private int horizontalSectors = 8;
     private int verticalSectors = 2;
@@ -114,7 +115,7 @@ public class DataPoolScheduler implements Runnable {
                 }
                 //System.out.println(hapticOut);
                 //System.out.println(Arrays.toString(serialOut));
-                LiDARQ.put(new ThreeTuple(serialOut,0, priority));
+                LiDARQ.put(new ThreeTuple<>(serialOut, Instant.now(), priority));
             } catch (Exception e) {
                 e.printStackTrace();
             }
