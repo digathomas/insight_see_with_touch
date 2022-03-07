@@ -21,6 +21,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import com.example.insight.BTSerial.BLE;
+
 import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
@@ -50,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
     private static Boolean objectDetectionState = true;
     public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
+
+    //BLE
+    private BLE ble;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         lidarActivity = new LidarActivity(this);
+        this.ble = new BLE(this);
     }
 
     @Override
@@ -112,6 +119,18 @@ public class MainActivity extends AppCompatActivity {
     public synchronized void onPause() {
         super.onPause();
         pauseHandlerThread();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (ble != null){
+            try{
+                ble.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
