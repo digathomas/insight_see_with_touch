@@ -4,6 +4,8 @@
     package="com.example.insight">
 
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 
     <uses-feature android:name = "android.hardware.usb.host" />
     <uses-feature android:name="android.hardware.camera" />
@@ -16,12 +18,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Insight">
-        <activity
-            android:name="detection.DetectorActivity">
-        </activity>
-        <activity
-            android:name="lidar.LidarActivity">
-        </activity>
         <activity
             android:name=".GpsActivity">
         </activity>

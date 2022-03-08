@@ -38,12 +38,16 @@ public class PriorityModule implements Runnable{
             try{
                 //TODO: Flow control for incoming CameraTTs
                 ThreeTuple<int[]> lidarTT = liDARQ.poll();
+                ThreeTuple mapTT = mapQ.peek();
+                ThreeTuple<String> cameraTT = cameraQ.peek();
+                if (lidarTT == null && mapTT == null && cameraTT == null){
+                    return;
+                }
                 int lidarPriority = -1;
                 if (lidarTT != null){
                     lastLidarData = lidarTT.getData();
                     lidarPriority = lidarTT.getPriority();
                 }
-                ThreeTuple mapTT = mapQ.peek();
                 int mapPriority = -1;
                 if (mapTT != null){
                     if (mapTT.getDeadline().isAfter(Instant.now())) {
@@ -53,7 +57,6 @@ public class PriorityModule implements Runnable{
                         mapQ.take();
                     }
                 }
-                ThreeTuple<String> cameraTT = cameraQ.peek();
                 int cameraPriority = -1;
                 if (cameraTT != null){
                     if (cameraTT.getDeadline().isAfter(Instant.now())) {

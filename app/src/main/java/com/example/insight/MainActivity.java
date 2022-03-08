@@ -87,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         lidarActivity = new LidarActivity(this);
-        this.ble = new BLE(this);
     }
 
     @Override
@@ -155,6 +154,8 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case R.id.lidar_state:
                 try {
+                    //TODO: REMOVE BLE STUFF
+                    this.ble = new BLE(this);
                     if(lidarState){
                         // turn off lidar sensor
                         lidarHelper.sendStop();
@@ -166,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                     lidarHelper.sendStart3D();
                     lidarState = true;
                     item.setTitle("Lidar: ON");
+
                     return true;
                 } catch (IOException e) {
                     e.printStackTrace();
