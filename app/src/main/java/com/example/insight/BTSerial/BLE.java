@@ -41,7 +41,7 @@ public class BLE {
                 BluetoothGattService leftService = leftGATT.getService(UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e"));
                 BluetoothGattCharacteristic leftWriteCharacteristic = leftService.getCharacteristic(UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e"));
                 leftWriteCharacteristic.setValue(1, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-                if(leftGATT.writeCharacteristic(leftWriteCharacteristic)){
+                if(!leftGATT.writeCharacteristic(leftWriteCharacteristic)){
                     System.out.println("EMOTIONAL DAMAGE");
                 }
 
