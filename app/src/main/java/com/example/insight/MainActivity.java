@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     // menu variables to keep track of what's on and off
     // assuming everything starts at "on" state
+    private static Boolean userModeState = true;
     private static Boolean lidarState = true;
     private static Boolean objectDetectionState = true;
     public static Boolean lidarUiState = true;
@@ -134,74 +135,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
+            case R.id.user_mode_state:
+                switchUserModeState(item);
+                break;
             case R.id.lidar_state:
-                try {
-                    if(lidarState){
-                        // turn off lidar sensor
-                        lidarHelper.sendStop();
-                        lidarState = false;
-                        item.setTitle("Lidar: OFF");
-                        return true;
-                    }
-                    // turn on lidar sensor
-                    lidarHelper.sendStart3D();
-                    lidarState = true;
-                    item.setTitle("Lidar: ON");
-                    return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    break;
-                }
+                switchLidarState(item);
+                break;
             case R.id.bitmap_state:
-                if(bitmapImageView.getVisibility() == View.VISIBLE){
-                    bitmapImageView.setVisibility(View.INVISIBLE);
-                } else {
-                    bitmapImageView.setVisibility(View.VISIBLE);
-                }
-                if(lidarUiState) {
-                    // turn off bitmap
-                    lidarUiState = false; // LidarRenderer runnable checks for this variable state
-                    item.setTitle("Bitmap: OFF");
-                    return true;
-                }
-                // turn on bitmap
-                lidarUiState = true;
-                item.setTitle("Bitmap: ON");
-                return true;
+                switchObjectDetectionState(item);
+                break;
             case R.id.object_detection_state:
-                if (objectDetectionState) {
-                    // turn off object detection
-                    pauseHandlerThread();
-                    objectDetectionState = false;
-                    item.setTitle("Obj Det: OFF");
-                    return true;
-                }
-                // turn on object detection
-                resumeHandlerThread();
-                objectDetectionState = true;
-                item.setTitle("Obj Det: ON");
-                return true;
+                switchLidarUiState(item);
+                break;
             case R.id.camera_state:
-                if(container.getVisibility() == View.VISIBLE){
-                    container.setVisibility(View.GONE);
-                } else {
-                    container.setVisibility(View.VISIBLE);
-                }
-                if(objectDetectionUiState){
-                    // turn off camera feed
-                    // TODO: turn off camera feed
-                    objectDetectionUiState = false;
-                    item.setTitle("Cam Feed: OFF");
-                    return true;
-                }
-                // turn on camera feed
-                // TODO: turn on camera feed
-                objectDetectionUiState = true;
-                item.setTitle("Cam Feed: ON");
-                return true;
+                switchObjectDetectionUiState(item);
+                break;
+            default:
+                return false;
         }
-        return false;
+        return true;
     }
 
     private void resumeHandlerThread(){
@@ -262,4 +214,87 @@ public class MainActivity extends AppCompatActivity {
         return bitmapImageView;
     }
 
+    private void switchUserModeState(MenuItem item) {
+        if(userModeState) {
+            // go into developer mode
+            userModeState = false;
+            item.setTitle("DEV MODE");
+        } else {
+            // go into user mode
+            userModeState = true;
+            item.setTitle("USER MODE");
+        }
+        switchLidarUiState(item);
+        switchObjectDetectionUiState(item);
+
+        //TODO: dynamically remove menu items
+    }
+
+    private void switchLidarState(MenuItem item) {
+        try {
+            if(lidarState){
+                // turn off lidar sensor
+                lidarHelper.sendStop();
+                lidarState = false;
+                item.setTitle("Lidar: OFF");
+                return;
+            }
+            // turn on lidar sensor
+            lidarHelper.sendStart3D();
+            lidarState = true;
+            item.setTitle("Lidar: ON");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void switchObjectDetectionState(MenuItem item) {
+        if(bitmapImageView.getVisibility() == View.VISIBLE){
+            bitmapImageView.setVisibility(View.GONE);
+        } else {
+            bitmapImageView.setVisibility(View.VISIBLE);
+        }
+        if(lidarUiState) {
+            // turn off bitmap
+            lidarUiState = false; // LidarRenderer runnable checks for this variable state
+            item.setTitle("Bitmap: OFF");
+            return;
+        }
+        // turn on bitmap
+        lidarUiState = true;
+        item.setTitle("Bitmap: ON");
+    }
+
+    private void switchLidarUiState(MenuItem item) {
+        if (objectDetectionState) {
+            // turn off object detection
+            pauseHandlerThread();
+            objectDetectionState = false;
+            item.setTitle("Obj Det: OFF");
+            return;
+        }
+        // turn on object detection
+        resumeHandlerThread();
+        objectDetectionState = true;
+        item.setTitle("Obj Det: ON");
+    }
+
+    private void switchObjectDetectionUiState(MenuItem item) {
+        if(container.getVisibility() == View.VISIBLE){
+            container.setVisibility(View.GONE);
+        } else {
+            container.setVisibility(View.VISIBLE);
+        }
+        if(objectDetectionUiState){
+            // turn off camera feed
+            // TODO: turn off camera feed
+            objectDetectionUiState = false;
+            item.setTitle("Cam Feed: OFF");
+            return;
+        }
+        // turn on camera feed
+        // TODO: turn on camera feed
+        objectDetectionUiState = true;
+        item.setTitle("Cam Feed: ON");
+    }
 }
