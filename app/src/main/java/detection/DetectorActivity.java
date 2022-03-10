@@ -22,17 +22,13 @@ import android.graphics.*;
 import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Style;
 import android.media.ImageReader.OnImageAvailableListener;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 import androidx.fragment.app.FragmentManager;
 import com.example.insight.BTSerial.ThreeTuple;
-import com.example.insight.MainActivity;
 import com.example.insight.R;
-import detection.CameraActivity;
 import detection.customview.OverlayView;
 import detection.customview.OverlayView.DrawCallback;
 import detection.env.BorderedText;
@@ -44,6 +40,7 @@ import detection.tracking.MultiBoxTracker;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -295,19 +292,37 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         if (!recognitionList.isEmpty()) {
           Detector.Recognition highestPriority = null;
           float highestArea = -1;
+          Instant deadline = Instant.now().plusSeconds(3);
+
+          //get the biggest area
           for (Detector.Recognition result : recognitionList) {
             float area = result.getLocation().height()*result.getLocation().width();
             if (area > highestArea)
               highestPriority = result;
           }
 
+          //remove old recognized object
+          Iterator<ThreeTuple<Detector.Recognition>> iterator = cameraQ.iterator();
+          while (iterator.hasNext()){
+            ThreeTuple<Detector.Recognition> item = iterator.next();
+            if (item.getData().getId() == highestPriority.getId()){
+              if(item.getDeadline().compareTo(deadline) >=0){
+                highestPriority = null; //object in priorityqueue is newer
+                break;
+              }
+              cameraQ.remove(item);
+              break;
+            }
+          }
+
+          //Send recognitionObject to PriorityModule cameraQ
           if (highestPriority != null && cameraQ != null) {
             float percentageArea = (previewHeight * previewWidth) / (highestArea);
-            if (percentageArea >= 40){
-              int priority = ((int)percentageArea-40)*31/60;
+            if (percentageArea >= 0.40){
+              int priority = (int)((percentageArea-0.40)*31/60);
               cameraQ.add(new ThreeTuple<>(
                       recognitionClone(highestPriority), //Recognition object
-                      Instant.now().plusSeconds(3),      //Instant + 3 seconds
+                      deadline,      //Instant + 3 seconds
                       priority));                        //priority
             }
           }
