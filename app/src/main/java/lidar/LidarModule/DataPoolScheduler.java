@@ -16,7 +16,7 @@ public class DataPoolScheduler implements Runnable {
     private static ArrayBlockingQueue<int[]> hapticQ;
     private static ArrayBlockingQueue<ThreeTuple<int[]>> LiDARQ;
     private ThreadPoolExecutor executor;
-    private int horizontalSectors = 8;
+    private int horizontalSectors = 5;
     private int verticalSectors = 2;
     private final static int FRAME_WIDTH = 160;
     private final static int FRAME_HEIGHT = 60;
@@ -50,68 +50,14 @@ public class DataPoolScheduler implements Runnable {
                 List<Integer> hapticOut = new ArrayList<>();
                 for (Future f : callsOut) hapticOut.add((Integer) f.get());
                 System.out.println(hapticOut);
-                //String serialOut = "";
                 //TODO: make generic
                 int[] serialOut = new int[20];
-                serialOut[0] = -1;
-                serialOut[1] = -1;
-                serialOut[18] = -1;
-                serialOut[19] = -1;
+                Arrays.fill(serialOut, 0);
                 int priority = -1;
-                for (int i = 2; i < 18; i++) {
-                    int value = hapticOut.get(i - 2) / 128;
+                for (int i = 0; i < 2*horizontalSectors; i++) {
+                    int value = hapticOut.get(i) / 128;
                     if (value > priority) priority = value;
                     serialOut[i] = value;
-//                    switch (value) {
-//                        case 0:
-//                            serialOut[i] = 0;
-//                            break;
-//                        case 1:
-//                            serialOut[i] = 1;
-//                            break;
-//                        case 2:
-//                            serialOut[i] = 2;
-//                            break;
-//                        case 3:
-//                            serialOut[i] = 3;
-//                            break;
-//                        case 4:
-//                            serialOut[i] = 4;
-//                            break;
-//                        case 5:
-//                            serialOut[i] = 5;
-//                            break;
-//                        case 6:
-//                            serialOut[i] = 6;
-//                            break;
-//                        case 7:
-//                            serialOut[i] = 7;
-//                            break;
-//                        case 8:
-//                            serialOut[i] = 8;
-//                            break;
-//                        case 9:
-//                            serialOut[i] = 9;
-//                            break;
-//                        case 10:
-//                            serialOut[i] = 10;
-//                            break;
-//                        case 11:
-//                            serialOut[i] = 11;
-//                            break;
-//                        case 12:
-//                            serialOut[i] = 12;
-//                            break;
-//                        case 13:
-//                            serialOut[i] = 13;
-//                            break;
-//                        case 14:
-//                            serialOut[i] = 14;
-//                            break;
-//                        case 15:
-//                            serialOut[i] = 15;
-//                            break;
-//                    }
                 }
                 //System.out.println(hapticOut);
                 //System.out.println(Arrays.toString(serialOut));
