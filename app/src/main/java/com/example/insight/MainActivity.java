@@ -5,28 +5,26 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.media.MediaPlayer;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import detection.CameraActivity;
+
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
 import lidar.LidarActivity;
 import lidar.LidarModule.LidarHelper;
-import lidar.LidarModule.LidarRenderer;
 
 import java.io.IOException;
 
@@ -41,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Thread detectorThread;
     private static OverlayView trackingOverlay ;
+    private static LinearLayout userLayout;
+    private static LinearLayout devLayout;
     private static FrameLayout container;
     private static ImageView bitmapImageView;
 
@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
             requestPermission();
         }
 
+        userLayout = findViewById(R.id.userLayout);
+        devLayout = findViewById(R.id.devLayout);
         container = findViewById(R.id.container);
         bitmapImageView = findViewById(R.id.bitmapImageView);
 
@@ -82,6 +84,44 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         lidarActivity = new LidarActivity(this);
+
+        // set up voice instructions
+        FrameLayout frame1 = (FrameLayout) this.findViewById(R.id.frame1);
+        FrameLayout frame2 = (FrameLayout) this.findViewById(R.id.frame2);
+        FrameLayout frame3 = (FrameLayout) this.findViewById(R.id.frame3);
+        final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.song1)};
+        final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.song2)};
+        final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.song3)};
+        frame1.setOnClickListener(v -> {
+            try {
+                if (mp1[0].isPlaying()) {
+                    mp1[0].stop();
+                    mp1[0].release();
+                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                }
+                mp1[0].start();
+            } catch(Exception e) { e.printStackTrace(); }
+        });
+        frame2.setOnClickListener(v -> {
+            try {
+                if (mp2[0].isPlaying()) {
+                    mp2[0].stop();
+                    mp2[0].release();
+                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                }
+                mp2[0].start();
+            } catch(Exception e) { e.printStackTrace(); }
+        });
+        frame3.setOnClickListener(v -> {
+            try {
+                if (mp3[0].isPlaying()) {
+                    mp3[0].stop();
+                    mp3[0].release();
+                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                }
+                mp3[0].start();
+            } catch(Exception e) { e.printStackTrace(); }
+        });
     }
 
     @Override
@@ -142,10 +182,10 @@ public class MainActivity extends AppCompatActivity {
                 switchLidarState(item);
                 break;
             case R.id.bitmap_state:
-                switchObjectDetectionState(item);
+                switchLidarUiState(item);
                 break;
             case R.id.object_detection_state:
-                switchLidarUiState(item);
+                switchObjectDetectionState(item);
                 break;
             case R.id.camera_state:
                 switchObjectDetectionUiState(item);
@@ -219,13 +259,15 @@ public class MainActivity extends AppCompatActivity {
             // go into developer mode
             userModeState = false;
             item.setTitle("DEV MODE");
+            userLayout.setVisibility(View.GONE);
+            devLayout.setVisibility(View.VISIBLE);
         } else {
             // go into user mode
             userModeState = true;
             item.setTitle("USER MODE");
+            devLayout.setVisibility(View.GONE);
+            userLayout.setVisibility(View.VISIBLE);
         }
-        switchLidarUiState(item);
-        switchObjectDetectionUiState(item);
 
         //TODO: dynamically remove menu items
     }
@@ -248,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void switchObjectDetectionState(MenuItem item) {
+    private void switchLidarUiState(MenuItem item) {
         if(bitmapImageView.getVisibility() == View.VISIBLE){
             bitmapImageView.setVisibility(View.GONE);
         } else {
@@ -265,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
         item.setTitle("Bitmap: ON");
     }
 
-    private void switchLidarUiState(MenuItem item) {
+    private void switchObjectDetectionState(MenuItem item) {
         if (objectDetectionState) {
             // turn off object detection
             pauseHandlerThread();

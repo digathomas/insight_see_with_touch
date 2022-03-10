@@ -11,9 +11,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/insight_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/insight_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Insight">
         <activity
@@ -27,7 +27,8 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:label="Insight: See with Touch">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
