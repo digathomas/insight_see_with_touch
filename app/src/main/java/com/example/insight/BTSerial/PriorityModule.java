@@ -80,7 +80,7 @@ public class PriorityModule implements Runnable{
                     //TODO: parse and send to BT
                     int[] mergedOutput = new int[20];
                     if (cameraTimer == null){
-                        //cameraMessage = cameraTT.getData();
+                        cameraMessage = cameraTT.getData().getTitle();
                         cameraTimer = Instant.now().plusMillis(CHAR_DURATION);
                         lastBraille = BrailleParser.parse(cameraMessage.charAt(cameraMessageIndex));
                         mergedOutput = mergeOutput(lastLidarData, lastBraille, false);

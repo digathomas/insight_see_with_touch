@@ -305,7 +305,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           Iterator<ThreeTuple<Detector.Recognition>> iterator = cameraQ.iterator();
           while (iterator.hasNext()){
             ThreeTuple<Detector.Recognition> item = iterator.next();
-            if (item.getData().getId() == highestPriority.getId()){
+            if (item.getData().getTitle() == highestPriority.getTitle()){
               if(item.getDeadline().isAfter(deadline)){
                 highestPriority = null; //object in priorityqueue is newer
                 break;
