@@ -2,21 +2,14 @@ package lidar;
 
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
-import com.example.insight.BTSerial.PriorityModule;
+import com.example.insight.BTSerial.Scheduler;
 import com.example.insight.MainActivity;
-import com.example.insight.R;
 
 import java.io.IOException;
 
@@ -80,7 +73,7 @@ public class LidarActivity {
 //        setupUI();
         this.bitmapImageView = MainActivity.getBitmapImageView();
         if (priorityThread == null){
-            priorityThread = new Thread(new PriorityModule(this.context));
+            priorityThread = new Thread(new Scheduler(this.context));
             priorityThread.setPriority(Thread.MAX_PRIORITY);
             priorityThread.setName("PriorityThread");
             priorityThread.start();

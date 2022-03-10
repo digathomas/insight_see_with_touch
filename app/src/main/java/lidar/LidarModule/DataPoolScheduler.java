@@ -1,6 +1,6 @@
 package lidar.LidarModule;
 
-import com.example.insight.BTSerial.PriorityModule;
+import com.example.insight.BTSerial.Scheduler;
 import com.example.insight.BTSerial.ThreeTuple;
 
 import java.time.Instant;
@@ -24,7 +24,7 @@ public class DataPoolScheduler implements Runnable {
     public DataPoolScheduler() {
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
         DataPoolScheduler.hapticQ = LidarRenderer.getHapticQ();
-        DataPoolScheduler.LiDARQ = PriorityModule.getliDARQ();
+        DataPoolScheduler.LiDARQ = Scheduler.getliDARQ();
     }
 
     @Override

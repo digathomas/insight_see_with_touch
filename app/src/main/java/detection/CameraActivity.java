@@ -20,7 +20,6 @@ import android.Manifest;
 import android.app.Activity;
 import androidx.fragment.app.Fragment;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -32,17 +31,11 @@ import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.*;
 import android.util.Size;
-import android.view.Surface;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.WindowManager;
 import android.widget.*;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
-import com.example.insight.BTSerial.PriorityModule;
+import com.example.insight.BTSerial.Scheduler;
 import com.example.insight.BTSerial.ThreeTuple;
 import com.example.insight.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -51,7 +44,6 @@ import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public abstract class CameraActivity
@@ -97,7 +89,7 @@ public abstract class CameraActivity
     this.activity = activity;
     this.fragmentManager = fragmentManager;
 
-    cameraQ = PriorityModule.getCameraQ();
+    cameraQ = Scheduler.getCameraQ();
     setFragment();
     initializeHandlers();
   }

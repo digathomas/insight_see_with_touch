@@ -6,10 +6,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
-import com.example.insight.BTSerial.PriorityModule;
+import com.example.insight.BTSerial.Scheduler;
 import com.example.insight.BTSerial.ThreeTuple;
 
-import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -21,7 +20,7 @@ public class BitmapGenerator implements Runnable{
     public BitmapGenerator(){
         BitmapGenerator.bitmapQ = LidarRenderer.getBitmapQ();
         BitmapGenerator.colorQ = LidarRenderer.getColorQ();
-        BitmapGenerator.liDARQ = PriorityModule.getliDARQ();
+        BitmapGenerator.liDARQ = Scheduler.getliDARQ();
     }
 
     @Override
