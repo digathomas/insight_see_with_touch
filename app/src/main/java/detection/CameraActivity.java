@@ -42,11 +42,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
+import com.example.insight.BTSerial.PriorityModule;
+import com.example.insight.BTSerial.ThreeTuple;
 import com.example.insight.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import detection.env.ImageUtils;
+import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public abstract class CameraActivity
     implements OnImageAvailableListener,
@@ -84,12 +90,14 @@ public abstract class CameraActivity
   protected Activity activity;
   protected Context context;
   protected FragmentManager fragmentManager;
+  protected PriorityBlockingQueue<ThreeTuple<Detector.Recognition>> cameraQ;
 
   public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager){
     this.context = context;
     this.activity = activity;
     this.fragmentManager = fragmentManager;
 
+    cameraQ = PriorityModule.getCameraQ();
     setFragment();
     initializeHandlers();
   }
@@ -369,4 +377,8 @@ public abstract class CameraActivity
   protected abstract void setNumThreads(int numThreads);
 
   protected abstract void setUseNNAPI(boolean isChecked);
+
+  protected abstract void sendToPriotityModule(List<Detector.Recognition> recognitionList);
+
+  protected abstract Detector.Recognition recognitionClone(Detector.Recognition oldRec);
 }

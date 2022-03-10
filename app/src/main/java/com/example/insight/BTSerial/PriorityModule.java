@@ -1,16 +1,19 @@
 package com.example.insight.BTSerial;
 
 import android.content.Context;
+import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public class PriorityModule implements Runnable{
     private Context context;
     private static ArrayBlockingQueue<ThreeTuple<int[]>> liDARQ;
     private static ArrayBlockingQueue<ThreeTuple> mapQ;
-    private static ArrayBlockingQueue<ThreeTuple<String>> cameraQ;
+    private static PriorityBlockingQueue<ThreeTuple<Detector.Recognition>> cameraQ;
     private Scheduler scheduler = new Scheduler();
     private int[] lastLidarData = new int[20];
     private String cameraMessage;
@@ -18,6 +21,7 @@ public class PriorityModule implements Runnable{
     private Instant cameraTimer;
     private static final int CHAR_DURATION = 500;
     private int[] lastBraille = new int[20];
+    private final Comparator<ThreeTuple> comparator = Comparator.comparingInt(ThreeTuple::getPriority);
 
     public PriorityModule(Context context){
         this.context = context;
@@ -28,7 +32,7 @@ public class PriorityModule implements Runnable{
             PriorityModule.mapQ = new ArrayBlockingQueue<>(100);
         }
         if (PriorityModule.cameraQ == null){
-            PriorityModule.cameraQ = new ArrayBlockingQueue<>(100);
+            PriorityModule.cameraQ = new PriorityBlockingQueue<>(100,comparator);
         }
     }
 
@@ -39,7 +43,7 @@ public class PriorityModule implements Runnable{
                 //TODO: Flow control for incoming CameraTTs
                 ThreeTuple<int[]> lidarTT = liDARQ.poll();
                 ThreeTuple mapTT = mapQ.peek();
-                ThreeTuple<String> cameraTT = cameraQ.peek();
+                ThreeTuple<Detector.Recognition> cameraTT = cameraQ.peek();
                 if (lidarTT == null && mapTT == null && cameraTT == null){
                     return;
                 }
@@ -76,7 +80,7 @@ public class PriorityModule implements Runnable{
                     //TODO: parse and send to BT
                     int[] mergedOutput = new int[20];
                     if (cameraTimer == null){
-                        cameraMessage = cameraTT.getData();
+                        //cameraMessage = cameraTT.getData();
                         cameraTimer = Instant.now().plusMillis(CHAR_DURATION);
                         lastBraille = BrailleParser.parse(cameraMessage.charAt(cameraMessageIndex));
                         mergedOutput = mergeOutput(lastLidarData, lastBraille, false);
@@ -137,7 +141,8 @@ public class PriorityModule implements Runnable{
         return PriorityModule.mapQ;
     }
 
-    public static ArrayBlockingQueue<ThreeTuple<String>> getCameraQ(){
+    public static PriorityBlockingQueue<ThreeTuple<Detector.Recognition>> getCameraQ(){
         return PriorityModule.cameraQ;
     }
+
 }

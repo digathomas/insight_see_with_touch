@@ -22,11 +22,14 @@ import android.graphics.*;
 import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Style;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 import androidx.fragment.app.FragmentManager;
+import com.example.insight.BTSerial.ThreeTuple;
 import com.example.insight.MainActivity;
 import com.example.insight.R;
 import detection.CameraActivity;
@@ -39,8 +42,10 @@ import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIMod
 import detection.tracking.MultiBoxTracker;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An activity that uses a TensorFlowMultiBoxDetector and ObjectTracker to detect and then track
@@ -80,6 +85,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private MultiBoxTracker tracker;
 
   private BorderedText borderedText;
+
 
   public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
     super(context, activity, fragmentManager);
@@ -171,6 +177,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       ImageUtils.saveBitmap(croppedBitmap);
     }
 
+    try {
+      TimeUnit.MILLISECONDS.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+
     runInBackground(
         new Runnable() {
           @Override
@@ -211,19 +223,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
-//            activity.runOnUiThread(new Runnable() {
-//              @Override
-//              public void run() {
-//                String print = "";
-//                for (Detector.Recognition result : mappedRecognitions){
-//                    print += result.getTitle() + ": " +
-//                            result.getLocation().height() + "," +
-//                            result.getLocation().width() + "\n";
-//                }
-//
-//                System.out.println(print + "-------------------");
-//              }
-//            });
+
+            sendToPriotityModule(mappedRecognitions);
 //            activity.runOnUiThread(
 //                new Runnable() {
 //                  @Override
@@ -279,4 +280,45 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   protected void setNumThreads(final int numThreads) {
     runInBackground(() -> detector.setNumThreads(numThreads));
   }
+
+
+  //Priority done by percentage area the object is taking
+  //up of the camera view. 40% lowest priority 0
+  // 100% highest priority 31
+  //Only highest priority of the list will be sent to
+  //priority module
+  @Override
+  protected void sendToPriotityModule(List<Detector.Recognition> recognitionList){
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (!recognitionList.isEmpty()) {
+          Detector.Recognition highestPriority = null;
+          float highestArea = -1;
+          for (Detector.Recognition result : recognitionList) {
+            float area = result.getLocation().height()*result.getLocation().width();
+            if (area > highestArea)
+              highestPriority = result;
+          }
+
+          if (highestPriority != null && cameraQ != null) {
+            float percentageArea = (previewHeight * previewWidth) / (highestArea);
+            if (percentageArea >= 40){
+              int priority = ((int)percentageArea-40)*31/60;
+              cameraQ.add(new ThreeTuple<>(
+                      recognitionClone(highestPriority), //Recognition object
+                      Instant.now().plusSeconds(3),      //Instant + 3 seconds
+                      priority));                        //priority
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @Override
+  protected Detector.Recognition recognitionClone(Detector.Recognition oldRec){
+    return new Detector.Recognition(oldRec.getId(),oldRec.getTitle(),oldRec.getConfidence(),oldRec.getLocation());
+  }
+
 }
