@@ -10,9 +10,11 @@ import android.os.Build;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
     private static LinearLayout devLayout;
     private static FrameLayout container;
     private static ImageView bitmapImageView;
+    private static ImageView app_logo;
+    private static Button button1;
+    private static Button button2;
+    private static Button button3;
+    private static TextView instructionTextView;
 
     // menu variables to keep track of what's on and off
     // assuming everything starts at "on" state
@@ -67,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
         devLayout = findViewById(R.id.devLayout);
         container = findViewById(R.id.container);
         bitmapImageView = findViewById(R.id.bitmapImageView);
+        app_logo = findViewById(R.id.app_logo);
+        button1 = findViewById(R.id.button1);
+        button2 = findViewById(R.id.button2);
+        button3 = findViewById(R.id.button3);
+        instructionTextView = findViewById(R.id.instructionTextView );
 
         //Lidar Helper
         try {
@@ -86,47 +98,81 @@ public class MainActivity extends AppCompatActivity {
         lidarActivity = new LidarActivity(this);
 
         // set up voice instructions
-        FrameLayout frame1 = (FrameLayout) this.findViewById(R.id.frame1);
-        FrameLayout frame2 = (FrameLayout) this.findViewById(R.id.frame2);
-        FrameLayout frame3 = (FrameLayout) this.findViewById(R.id.frame3);
         final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.song1)};
         final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.song2)};
         final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.song3)};
-        frame1.setOnClickListener(v -> {
+        app_logo.setOnClickListener(v -> {
             try {
-                if (mp1[0].isPlaying()) {
+                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
                     mp1[0].stop();
                     mp1[0].release();
                     mp1[0] = MediaPlayer.create(this, R.raw.song1);
-                }
-                mp1[0].start();
-            } catch(Exception e) { e.printStackTrace(); }
-        });
-        frame2.setOnClickListener(v -> {
-            try {
-                if (mp2[0].isPlaying()) {
                     mp2[0].stop();
                     mp2[0].release();
                     mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp3[0].stop();
+                    mp3[0].release();
+                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
                 }
-                mp2[0].start();
+                instructionTextView.setText(R.string.instructions);
             } catch(Exception e) { e.printStackTrace(); }
         });
-        frame3.setOnClickListener(v -> {
+        button1.setOnClickListener(v -> {
             try {
-                if (mp3[0].isPlaying()) {
+                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
+                    mp1[0].stop();
+                    mp1[0].release();
+                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp2[0].stop();
+                    mp2[0].release();
+                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp3[0].stop();
+                    mp3[0].release();
+                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                }
+                mp1[0].start();
+                instructionTextView.setText(R.string.instructions1);
+            } catch(Exception e) { e.printStackTrace(); }
+        });
+        button2.setOnClickListener(v -> {
+            try {
+                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
+                    mp1[0].stop();
+                    mp1[0].release();
+                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp2[0].stop();
+                    mp2[0].release();
+                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp3[0].stop();
+                    mp3[0].release();
+                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                }
+                mp2[0].start();
+                instructionTextView.setText(R.string.instructions2);
+            } catch(Exception e) { e.printStackTrace(); }
+        });
+        button3.setOnClickListener(v -> {
+            try {
+                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
+                    mp1[0].stop();
+                    mp1[0].release();
+                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp2[0].stop();
+                    mp2[0].release();
+                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
                     mp3[0].stop();
                     mp3[0].release();
                     mp3[0] = MediaPlayer.create(this, R.raw.song3);
                 }
                 mp3[0].start();
+                instructionTextView.setText(R.string.instructions3);
             } catch(Exception e) { e.printStackTrace(); }
         });
     }
 
     @Override
     public synchronized void onStart() {
-    super.onStart();
+        super.onStart();
     }
 
     @Override
@@ -156,8 +202,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(
-            final int requestCode, final String[] permissions, final int[] grantResults) {
+    public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
             if (!allPermissionsGranted(grantResults)) {
@@ -169,6 +214,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_list, menu);
+        MenuItem i = menu.findItem(R.id.user_mode_state);
+        if (userModeState) {
+            i.setTitle("USER MODE");
+        } else {
+            i.setTitle("DEV MODE");
+        }
+        MenuItem[] item = {menu.findItem(R.id.lidar_state), menu.findItem(R.id.bitmap_state), menu.findItem(R.id.object_detection_state), menu.findItem(R.id.camera_state)};
+        for (MenuItem it : item) {
+            it.setVisible(!userModeState);
+        }
         return true;
     }
 
@@ -258,18 +313,16 @@ public class MainActivity extends AppCompatActivity {
         if(userModeState) {
             // go into developer mode
             userModeState = false;
-            item.setTitle("DEV MODE");
+            invalidateOptionsMenu();
             userLayout.setVisibility(View.GONE);
             devLayout.setVisibility(View.VISIBLE);
         } else {
             // go into user mode
             userModeState = true;
-            item.setTitle("USER MODE");
+            invalidateOptionsMenu();
             devLayout.setVisibility(View.GONE);
             userLayout.setVisibility(View.VISIBLE);
         }
-
-        //TODO: dynamically remove menu items
     }
 
     private void switchLidarState(MenuItem item) {

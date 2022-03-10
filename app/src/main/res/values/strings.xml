@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Insight</string>
     <string name="tfe_od_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
-    <string name="instructions1">Setup: Connect the Android device to the bluetooth haptic gloves. Wear both haptic gloves and open the Insight Android application. The gloves haptics will all vibrate 10 times to communicate successful start-up.</string>
-    <string name="instructions2">Usage: Form a screen with both hands pointing down and facing towards the stomach. Objects within a distance in front of the camera trigger vibrations varying in strenght. Both pinky fingers communicate the directions to take if the commuting features of the Insight app are in use. Braille communication is done on the right most fingers of the right hand.</string>
-    <string name="instructions3">Legend: S for step. W for water. P for person.</string>
+    <string name="instructions">Tap "SETUP" for instructions on the hardware setup\nTap "USAGE" for instructions on the operation of the system\nTap "ENCODING" for a table that maps braille code to real world objects</string>
+    <string name="instructions1">Setup:\nConnect the Android device to the bluetooth haptic gloves. Wear both haptic gloves and open the Insight Android application. The gloves haptics will all vibrate 10 times to communicate successful start-up.</string>
+    <string name="instructions2">Usage:\nForm a screen with both hands pointing down and facing towards the stomach. Objects within a distance in front of the camera trigger vibrations varying in strenght. Both pinky fingers communicate the directions to take if the commuting features of the Insight app are in use. Braille communication is done on the right most fingers of the right hand.</string>
+    <string name="instructions3">Legend:\nS: step\nW: water\nP: person\n</string>
 </resources>

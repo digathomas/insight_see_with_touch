@@ -24,13 +24,15 @@
             android:id="@+id/container"
             android:layout_width="fill_parent"
             android:layout_height="1dp"
-            android:layout_weight="50" />
+            android:layout_weight="60" >
+
+        </FrameLayout>
 
         <ImageView
             android:id="@+id/bitmapImageView"
             android:layout_width="fill_parent"
             android:layout_height="1dp"
-            android:layout_weight="50"
+            android:layout_weight="40"
             app:srcCompat="@drawable/no_data" />
 
     </LinearLayout>
@@ -52,47 +54,123 @@
             android:id="@+id/frame1"
             android:layout_width="fill_parent"
             android:layout_height="1dp"
-            android:layout_weight="33" >
+            android:layout_weight="30" >
 
-            <TextView
-                android:id="@+id/textView1"
+            <ImageView
+                android:id="@+id/app_logo"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="@string/instructions1"
-                android:textSize="24dp"
-                android:textColor="@color/white"/>
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                app:srcCompat="@drawable/insight_logo" />
 
         </FrameLayout>
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/frame2"
             android:layout_width="fill_parent"
             android:layout_height="1dp"
-            android:layout_weight="33" >
+            android:layout_weight="20"
+            android:weightSum="100">
 
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/instructions2"
-                android:textSize="24dp"
-                android:textColor="@color/white"/>
+            <FrameLayout
+                android:id="@+id/frame2_1"
+                android:layout_width="1dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="33" >
 
-        </FrameLayout>
+                <Button
+                    android:id="@+id/button1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:text="Setup"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/frame2_2"
+                android:layout_width="1dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="33" >
+
+                <Button
+                    android:id="@+id/button2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:text="Usage"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/frame2_3"
+                android:layout_width="1dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="34" >
+
+                <Button
+                    android:id="@+id/button3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:text="Encoding"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp" />
+
+            </FrameLayout>
+
+        </LinearLayout>
 
         <FrameLayout
             android:id="@+id/frame3"
             android:layout_width="fill_parent"
             android:layout_height="1dp"
-            android:layout_weight="33" >
+            android:layout_weight="50" >
 
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/instructions3"
-                android:textSize="24dp"
-                android:textColor="@color/white"/>
+            <FrameLayout
+                android:id="@+id/frame3_1"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+                <FrameLayout
+                    android:id="@+id/frame3_1_1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:background="@android:color/darker_gray"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp">
+
+                <TextView
+                    android:id="@+id/instructionTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/darker_gray"
+                    android:text="@string/instructions"
+                    android:textSize="18dp"
+                    android:textColor="@color/black"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp" />
+
+                </FrameLayout>
+
+            </FrameLayout>
 
         </FrameLayout>
 
