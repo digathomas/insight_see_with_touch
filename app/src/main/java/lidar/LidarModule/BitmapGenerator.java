@@ -48,15 +48,15 @@ public class BitmapGenerator implements Runnable{
                     paint.setTextSize((int) 8);
                     Rect bounds = new Rect();
                     paint.getTextBounds(Arrays.toString(data), 0, Arrays.toString(data).length(), bounds);
-                    for (int i = 1; i < 8; i++){
-                        canvas.drawLine(i*20-1,0,i*20-1,59, paint);
+                    for (int i = 1; i < 5; i++){
+                        canvas.drawLine(i*32-1,0,i*32-1,59, paint);
                     }
                     canvas.drawLine(0,30,159,30, paint);
-                    for (int i = 2; i < data.length-2; i++){
+                    for (int i = 0; i < 10; i++){
                         if (i%2 == 0){
-                            canvas.drawText(String.valueOf(data[i]), ((int)(i/2))*160/8-15, 15, paint);
+                            canvas.drawText(String.valueOf(data[i]), ((int)(i/2))*160/5+15, 15, paint);
                         }else{
-                            canvas.drawText(String.valueOf(data[i]), ((int)(i/2))*160/8-15, 45, paint);
+                            canvas.drawText(String.valueOf(data[i]), ((int)(i/2))*160/5+15, 45, paint);
                         }
                     }
                 }catch (Exception ignored){

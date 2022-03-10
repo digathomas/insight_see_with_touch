@@ -61,9 +61,12 @@ public class LidarRenderer implements Runnable {
 //                        System.out.println(""+a+"| "+b+"| "+c+ " |" + first+ " |"+ second +"| "+ Integer.toBinaryString(first)+"| "+Integer.toBinaryString(second));
 //                    }
                     hapticInt[frameIndex] = first;
-                    frameInt[frameIndex++] = makeColor(first);
+                    if (MainActivity.lidarUiState) {
+                        frameInt[frameIndex] = makeColor(first);
+                        frameInt[++frameIndex] = makeColor(second);
+                    }
                     hapticInt[frameIndex] = second;
-                    frameInt[frameIndex++] = makeColor(second);
+                    frameIndex++;
                 }
                 hapticQ.put(hapticInt.clone());
                 if (MainActivity.lidarUiState) {

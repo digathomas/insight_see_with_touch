@@ -51,18 +51,26 @@ public class DataHandler implements Runnable {
     public void run() {
         while (true) {
             try {
-                for (byte b : dataQ.take()) {
+                for (byte b : dataQ.take()){
                     streamingHeader(b);
                 }
 //                byte[] arr = dataQ.take();
-//                executor.submit(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        for (byte b : arr) {
-//                            streamingHeader(b);
+//                for (int i = 0; i < arr.length-2; i++) {
+//                    byte b = arr[i];
+//                    if (b == _65_0x41) {
+//                        if (arr[i + 1] == _56_0x38) {
+//                            if (arr[i + 2] == _8_0x8) {
+//                                System.out.println(dataIndex);
+//                                if (dataIndex == 14407) frameQ.add(frame.clone());
+//                                dataIndex = 0;
+//                            }
 //                        }
 //                    }
-//                });
+//                    if (dataIndex >= 14407) dataIndex = 0;
+//                    frame[dataIndex] = arr[i];
+//                    dataIndex++;
+//                }
+
 
             } catch (ArrayIndexOutOfBoundsException arrEx) {
                 dataIndex = 0;
@@ -74,14 +82,13 @@ public class DataHandler implements Runnable {
     }
 
     private static void streamingHeader(byte bite) {
-        if (bite == _65_0x41){
+        if (!check1 && bite == _65_0x41){
             check1 = true;
             check2 = false;
         }else if(check1 && bite == _56_0x38){
             check2 = true;
         }else if(check2 && bite == _8_0x8){
             System.out.println(""+ frame[0] +":"+ dataIndex);
-
             if (dataIndex == 14407) frameQ.add(frame.clone());
             dataIndex = 0;
             //frameQ.add(frame.clone());

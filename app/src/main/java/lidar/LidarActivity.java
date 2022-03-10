@@ -81,6 +81,7 @@ public class LidarActivity {
         this.bitmapImageView = MainActivity.getBitmapImageView();
         if (priorityThread == null){
             priorityThread = new Thread(new PriorityModule(this.context));
+            priorityThread.setPriority(Thread.MAX_PRIORITY);
             priorityThread.setName("PriorityThread");
             priorityThread.start();
         }
@@ -92,16 +93,19 @@ public class LidarActivity {
         }
         if (renderThread == null) {
             renderThread = new Thread(new LidarRenderer(this.context, bitmapImageView));
+            renderThread.setPriority(Thread.MAX_PRIORITY);
             renderThread.setName("renderThread");
             renderThread.start();
         }
         if (bitmapThread == null){
             bitmapThread = new Thread(new BitmapGenerator());
+            bitmapThread.setPriority(Thread.MAX_PRIORITY);
             bitmapThread.setName("Bitmap Thread");
             bitmapThread.start();
         }
         if (hapticThread == null){
             hapticThread = new Thread(new DataPoolScheduler());
+            hapticThread.setPriority(Thread.MAX_PRIORITY);
             hapticThread.setName("ThreadPool");
             hapticThread.start();
         }
