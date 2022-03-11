@@ -1,6 +1,9 @@
 package com.example.insight.BTSerial;
 
 import android.content.Context;
+
+import com.example.insight.MainActivity;
+
 import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 import java.time.Instant;
@@ -21,6 +24,7 @@ public class Scheduler implements Runnable{
     private static final int CHAR_DURATION = 500;
     private int[] lastBraille = new int[20];
     private final Comparator<ThreeTuple> comparator = Comparator.comparingInt(ThreeTuple::getPriority);
+    private BLE ble;
 
     public Scheduler(Context context){
         this.context = context;
@@ -33,6 +37,7 @@ public class Scheduler implements Runnable{
         if (Scheduler.cameraQ == null){
             Scheduler.cameraQ = new PriorityBlockingQueue<>(100,comparator);
         }
+        ble = MainActivity.getBle();
     }
 
     @Override
@@ -40,73 +45,13 @@ public class Scheduler implements Runnable{
         while(true){
             try{
                 //TODO: Flow control for incoming CameraTTs
-                ThreeTuple<int[]> lidarTT = liDARQ.poll();
-                ThreeTuple mapTT = mapQ.peek();
-                ThreeTuple<Detector.Recognition> cameraTT = cameraQ.peek();
-                if (lidarTT == null && mapTT == null && cameraTT == null){
-                    return;
-                }
-                int lidarPriority = -1;
-                if (lidarTT != null){
-                    lastLidarData = lidarTT.getData();
-                    lidarPriority = lidarTT.getPriority();
-                }
-                int mapPriority = -1;
-                if (mapTT != null){
-                    if (mapTT.getDeadline().isAfter(Instant.now())) {
-                        mapPriority = mapTT.getPriority();
-                    }
-                    else{
-                        mapQ.take();
-                    }
-                }
-                int cameraPriority = -1;
-                if (cameraTT != null){
-                    if (cameraTT.getDeadline().isAfter(Instant.now())) {
-                        cameraPriority = cameraTT.getPriority();
-                    }
-                    else{
-                        cameraQ.take();
-                    }
-                }
-                int maxPriority = ThreeTuple.max(new ThreeTuple[]{lidarTT, mapTT, cameraTT});
-
-                if (maxPriority == lidarPriority){
-                    //TODO: Send to scheduler/BT
-//                    scheduler.enqueue(lidarTT);
-                }
-                else if (maxPriority == cameraPriority){
-                    //TODO: parse and send to BT
-                    int[] mergedOutput = new int[20];
-                    if (cameraTimer == null){
-                        cameraMessage = cameraTT.getData().getTitle();
-                        cameraTimer = Instant.now().plusMillis(CHAR_DURATION);
-                        lastBraille = BrailleParser.parse(cameraMessage.charAt(cameraMessageIndex));
-                        mergedOutput = mergeOutput(lastLidarData, lastBraille, false);
-                    }else if (cameraTimer.isAfter(Instant.now())){
-                        mergedOutput = mergeOutput(lastLidarData, lastBraille, false);
-                    }else{
-                        cameraMessageIndex++;
-                        if (cameraMessageIndex >= cameraMessage.length()){
-                            cameraTimer = null;
-                            cameraMessageIndex = 0;
-                        }
-                        else{
-                            cameraTimer = Instant.now().plusMillis(CHAR_DURATION);
-                            lastBraille = BrailleParser.parse(cameraMessage.charAt(cameraMessageIndex));
-                            mergedOutput = mergeOutput(lastLidarData, lastBraille, false);
-                        }
-                    }
-//                    scheduler.enqueue(mergedOutput, Instant.now(), 0);
-                }
-                else if (maxPriority == mapPriority){
-                    //TODO: Merge with 2nd prio
-                }
-                else{
-                    continue;
-                }
-
-                cameraQ.take();
+                ThreeTuple<int[]> lidarTT = liDARQ.take();
+                ThreeTuple mapTT = mapQ.poll();
+                ThreeTuple<Detector.Recognition> cameraTT = cameraQ.poll();
+                ble.writeToGatt(BLE.LEFT_GATT, Arrays.copyOfRange(lidarTT.getData(),0,10));
+//                if (lidarTT == null && mapTT == null && cameraTT == null){
+//                    return;
+//                }
             }catch(Exception e){
                 e.printStackTrace();
             }

@@ -26,7 +26,7 @@ public class BLE {
     private static final UUID SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
     private static final UUID CHARCTERISTIC_UUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     private static final String LEFT_ADDRESS = "E6:E9:54:BB:C7:4C";
-    private static final String RIGHT_ADDRESS = "";
+    private static final String RIGHT_ADDRESS = "E8:BD:B6:C4:B8:D9";
     private BluetoothGattService leftService;
     private BluetoothGattService rightService;
     private BluetoothDevice leftDevice;
@@ -118,8 +118,8 @@ public class BLE {
     //write 20 int values with conversion to gatts
     public void writeToGatt(int[]value){
         if (value.length == 20) {
-            int leftHandValues[] = Arrays.copyOfRange(value,0,9);
-            int rightHandValues[] = Arrays.copyOfRange(value,10,19);
+            int leftHandValues[] = Arrays.copyOfRange(value,0,10);
+            int rightHandValues[] = Arrays.copyOfRange(value,10,20);
 
             writeToGatt(LEFT_GATT,leftHandValues);
             writeToGatt(RIGHT_GATT,rightHandValues);

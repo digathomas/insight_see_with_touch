@@ -55,13 +55,17 @@ public class MainActivity extends AppCompatActivity {
     private static Boolean objectDetectionUiState = true;
 
     //BLE
-    private BLE ble;
+    private static BLE ble;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (ble == null){
+            ble = new BLE(this);
+        }
 
         //Camera Permissions
         if(!hasPermission()){
@@ -97,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public synchronized void onResume() {
         super.onResume();
+        if (ble == null){
+            ble = new BLE(this);
+        }
         if (detectorActivity == null) {
             detectorThread = new Thread(() -> {
                 detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
@@ -283,4 +290,7 @@ public class MainActivity extends AppCompatActivity {
         return bitmapImageView;
     }
 
+    public static BLE getBle() {
+        return ble;
+    }
 }
