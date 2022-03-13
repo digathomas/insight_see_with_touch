@@ -24,6 +24,7 @@ import android.widget.Button;
 
 import com.example.insight.BTSerial.BLE;
 
+import com.example.insight.BTSerial.Scheduler;
 import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
@@ -54,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
     public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
 
+    private Scheduler scheduler;
+
     //BLE
     private static BLE ble;
 
@@ -63,9 +66,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        //BLE
         if (ble == null){
             ble = new BLE(this);
         }
+
+        //Scheduler
+        this.scheduler = new Scheduler();
+        scheduler.run();
 
         //Camera Permissions
         if(!hasPermission()){
@@ -90,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 lidarHelper.connectUsb();
             }
         }
-        lidarActivity = new LidarActivity(this);
+        lidarActivity = new LidarActivity(this,scheduler);
     }
 
     @Override
@@ -106,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (detectorActivity == null) {
             detectorThread = new Thread(() -> {
-                detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
+                detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager(),scheduler);
             });
             detectorThread.start();
         }else{
@@ -161,8 +169,6 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case R.id.lidar_state:
                 try {
-                    //TODO: REMOVE BLE STUFF
-                    this.ble = new BLE(this);
                     if(lidarState){
                         // turn off lidar sensor
                         lidarHelper.sendStop();
@@ -234,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void resumeHandlerThread(){
         detectorThread = new Thread(() -> {
-            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
+            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager(), scheduler);
         });
         detectorThread.start();
     }

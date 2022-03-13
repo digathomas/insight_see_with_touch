@@ -45,6 +45,7 @@ import org.tensorflow.lite.examples.detection.tflite.Detector;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 public abstract class CameraActivity
     implements OnImageAvailableListener,
@@ -83,11 +84,13 @@ public abstract class CameraActivity
   protected Context context;
   protected FragmentManager fragmentManager;
   protected PriorityBlockingQueue<ThreeTuple<Detector.Recognition>> cameraQ;
+  protected Scheduler scheduler;
 
-  public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager){
+  public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager,Scheduler scheduler){
     this.context = context;
     this.activity = activity;
     this.fragmentManager = fragmentManager;
+    this.scheduler = scheduler;
 
     cameraQ = Scheduler.getCameraQ();
     setFragment();
@@ -342,6 +345,8 @@ public abstract class CameraActivity
     }
   }
 
+
+
   protected void showDetectedObjects(String text){
     detectedTextView.setText(text);
   }
@@ -370,7 +375,7 @@ public abstract class CameraActivity
 
   protected abstract void setUseNNAPI(boolean isChecked);
 
-  protected abstract void sendToPriotityModule(List<Detector.Recognition> recognitionList);
+  protected abstract void sendToPriotittyModule(List<Detector.Recognition> recognitionList);
 
   protected abstract Detector.Recognition recognitionClone(Detector.Recognition oldRec);
 }

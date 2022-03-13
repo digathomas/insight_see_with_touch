@@ -54,14 +54,14 @@ public class BLE {
                 leftGATT = leftDevice.connectGatt(context, true, bluetoothGattCallback);
 
             }catch (Exception e){
-                Log.w("BLE", "leftConnect: ", e);
+                Log.d("BLE", "leftConnect: ", e);
                 Toast.makeText(context,"left bluetooth not connected",Toast.LENGTH_SHORT);
             }
             try {
                 rightDevice = bluetoothAdapter.getRemoteDevice(RIGHT_ADDRESS);
                 rightGATT = rightDevice.connectGatt(context, true, bluetoothGattCallback);
             }catch (Exception e){
-                Log.w("BLE", "rightConnect: ", e);
+                Log.d("BLE", "rightConnect: ", e);
                 Toast.makeText(context,"right bluetooth not connected",Toast.LENGTH_SHORT);
 
             }
@@ -101,12 +101,12 @@ public class BLE {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
             if (status == BluetoothGatt.GATT_SUCCESS){
-                if (gatt == leftGATT && leftService == null){
+                if (gatt == leftGATT){
                     leftService = leftGATT.getService(SERVICE_UUID);
                     if (leftService != null)
                         leftWriteCharacteristic = leftService.getCharacteristic(CHARCTERISTIC_UUID);
                 }
-                else if (gatt == rightGATT && rightService == null){
+                else{
                     rightService = rightGATT.getService(SERVICE_UUID);
                     if (rightService != null)
                         rightWriteCharacteristic = rightService.getCharacteristic(CHARCTERISTIC_UUID);
@@ -134,6 +134,16 @@ public class BLE {
         if (value.length == 10) {
             writeToGatt(gattLR,intToByte(value));
         }
+        else if (value.length == 20){
+            if(gattLR == LEFT_GATT){
+                int leftHandValues[] = Arrays.copyOfRange(value,0,10);
+                writeToGatt(gattLR,leftHandValues);
+            }
+            else{
+                int rightHandValues[] = Arrays.copyOfRange(value,10,20);
+                writeToGatt(gattLR,rightHandValues);
+            }
+        }
         else{
             Log.w("WriteToGatt","Unable to write to Gatt with int array not of size 10");
         }
@@ -142,25 +152,29 @@ public class BLE {
     //write the byte values to gatt by the characteristics
     public void writeToGatt(int gattLR, byte[] value){
         if (gattLR == LEFT_GATT){
-            if (leftGATT != null && leftWriteCharacteristic != null){
-                leftWriteCharacteristic.setValue(value);
-                if(!leftGATT.writeCharacteristic(leftWriteCharacteristic)){
-                    Log.w("BLE_Write", "Unable to write to left BLE");
+            if (leftGATT != null && leftWriteCharacteristic != null) {
+                synchronized (leftWriteCharacteristic) {
+                    leftWriteCharacteristic.setValue(value);
+                    if (!leftGATT.writeCharacteristic(leftWriteCharacteristic)) {
+                        Log.w("BLE_Write", "Unable to write to left BLE w Values: \n" +
+                                Arrays.toString(value));
+                    }
                 }
-            }
-            else{
+            } else {
                 Log.w("BLE_Write", "Left Gatt Service/Characteristics not set");
                 return;
             }
         }
         else{
-            if(rightGATT != null && rightWriteCharacteristic != null){
-                rightWriteCharacteristic.setValue(value);
-                if(!rightGATT.writeCharacteristic(rightWriteCharacteristic)){
-                    Log.w("BLE_Write", "Unable to write to left BLE");
+            if (rightGATT != null && rightWriteCharacteristic != null) {
+                synchronized (rightWriteCharacteristic) {
+                    rightWriteCharacteristic.setValue(value);
+                    if (!rightGATT.writeCharacteristic(rightWriteCharacteristic)) {
+                        Log.w("BLE_Write", "Unable to write to right BLE w Values: \n" +
+                                Arrays.toString(value));
+                    }
                 }
-            }
-            else{
+            } else {
                 Log.w("BLE_Write", "Right Gatt Service/Characteristics not set");
                 return;
             }
@@ -170,13 +184,14 @@ public class BLE {
     //Conversion from int array to byte array with
     //correct position of bytes. Follow notes at bottom of BLE.java
     public byte[] intToByte(int[] arr){
-        byte[] byteArr =  new byte[10];
+        byte[] byteArr =  new byte[11];
         if (arr.length == 10) {
+            byteArr[0] = 127;
             for (int i = 0; i < 10; i++) {
                 if (i % 2 == 0)
-                    byteArr[i / 2] = inBoundValue(arr[i]);
+                    byteArr[(i / 2) + 1] = inBoundValue(arr[i]);
                 else {
-                    byteArr[i / 2 + 5] = inBoundValue(arr[i]);
+                    byteArr[(i / 2 + 5) + 1] = inBoundValue(arr[i]);
                 }
             }
         }

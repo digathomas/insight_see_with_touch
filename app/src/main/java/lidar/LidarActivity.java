@@ -24,22 +24,18 @@ public class LidarActivity {
     private static final String TAG = "LidarActivity";
 
     protected Intent intent;
-    protected Button testButton, getInfoBbutton, threeDButton, exitButton;
-    protected TextView infoTextView;
     protected ImageView bitmapImageView;
-    protected LidarHelper lidarHelper;
     protected Thread dataThread;
     protected Thread renderThread;
     protected HandlerThread handlerThread;
     protected Thread bitmapThread;
     protected Thread hapticThread;
-    protected Thread priorityThread;
-    protected Looper looper;
-    protected Handler handler;
     private Context context;
+    protected Scheduler scheduler;
 
-    public LidarActivity(Context context){
+    public LidarActivity(Context context,Scheduler scheduler){
         this.context = context;
+        this.scheduler = scheduler;
         this.onCreate();
     }
 
@@ -57,27 +53,8 @@ public class LidarActivity {
     }
 
     protected void onCreate() {
-//        try {
-//            UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-//            lidarHelper = new LidarHelper(manager);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        if (intent != null) {
-//            UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-//            if (device != null) {
-//                Toast.makeText(getBaseContext(), "thing: " + device, Toast.LENGTH_SHORT).show();
-//                lidarHelper.connectUsb();
-//            }
-//        }
-//        setupUI();
         this.bitmapImageView = MainActivity.getBitmapImageView();
-        if (priorityThread == null){
-            priorityThread = new Thread(new Scheduler(this.context));
-            priorityThread.setPriority(Thread.MAX_PRIORITY);
-            priorityThread.setName("PriorityThread");
-            priorityThread.start();
-        }
+
         if (dataThread == null) {
             dataThread = new Thread(new DataHandler());
             dataThread.setPriority(Thread.MAX_PRIORITY);
@@ -103,71 +80,4 @@ public class LidarActivity {
             hapticThread.start();
         }
     }
-
-//    public void setupUI() {
-//
-//        testButton = findViewById(R.id.testButton);
-//        getInfoBbutton = findViewById(R.id.getInfoButton);
-//        threeDButton = findViewById(R.id.threeDModeButton);
-//        exitButton = findViewById(R.id.exitButton);
-//        infoTextView = findViewById(R.id.infoTextView);
-//        bitmapImageView = findViewById(R.id.bitmapImageView);
-//
-//        exitButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//                    lidarHelper.sendStop();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//
-//        testButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//                    lidarHelper.sendSetBaud();
-//                } catch (Exception e) {
-//                    makeToast(e.getMessage());
-//                }
-//            }
-//        });
-//
-//        getInfoBbutton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//                    if(!lidarHelper.sendInfoRequest()){
-//                        Toast.makeText(getApplicationContext(),"No USB connection found.", Toast.LENGTH_SHORT).show();
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                //usbGetInfo();
-//            }
-//        });
-//
-//        threeDButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//                    lidarHelper.sendStart3D();
-//                    //threeDMode();
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//    }
-//
-//    public void makeToast(String message) {
-//        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-//    }
-
-    public ImageView getBitmapImageView(){
-        return bitmapImageView;
-    }
-
 }
