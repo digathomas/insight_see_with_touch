@@ -79,7 +79,7 @@ public class LidarRenderer{
 
             List<Callable<Void>> callables = new ArrayList<>();
 
-            for (int i = 4; i < 14399; i+=3) {
+            for (int i = 0; i < 4799; i++) {
                 int finalI = i;
                 callables.add(() -> {
                     byteToHexHandling(finalI,frame);
@@ -130,9 +130,10 @@ public class LidarRenderer{
     }
 
     private void byteToHexHandling(int index, final byte[] frame){
-        int a = frame[index]&0x0ff;
-        int b = frame[index + 1]&0x0ff;
-        int c = frame[index + 2]&0x0ff;
+        int nIndex = 1+3*index;
+        int a = frame[nIndex]&0x0ff;
+        int b = frame[nIndex + 1]&0x0ff;
+        int c = frame[nIndex + 2]&0x0ff;
 
         int first = a;
         int second = b;
@@ -143,13 +144,13 @@ public class LidarRenderer{
         second <<= 8;
         second |= c;
 
-        int frameIndex = index/2 + index%2;
+        int frameIndex = index*2;
         hapticInt[frameIndex] = first;
         if (MainActivity.lidarUiState) {
             frameInt[frameIndex] = makeColor(first);
-            frameInt[++frameIndex] = makeColor(second);
+            frameInt[frameIndex+1] = makeColor(second);
         }
-        hapticInt[frameIndex] = second;
+        hapticInt[frameIndex+1] = second;
     }
 
     public void postToLidarHandler(byte[] frame){
@@ -184,5 +185,6 @@ public class LidarRenderer{
     public static ArrayBlockingQueue<int[]> getHapticQ() {
         return hapticQ;
     }
+
 
 }
