@@ -78,10 +78,6 @@ public class LidarRenderer{
             int frameIndex = 0;
 
             List<Callable<Void>> callables = new ArrayList<>();
-            callables.add(() -> {
-                byteToHexHandling(0, Arrays.copyOfRange(frame,1,3));
-                return null;
-            });
 
             for (int i = 4; i < 14399; i+=3) {
                 int finalI = i;
