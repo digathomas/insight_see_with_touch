@@ -3,10 +3,11 @@ package lidar.LidarModule;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import com.example.insight.MainActivity;
 
 import java.util.concurrent.*;
 
-public class DataHandler implements Runnable {
+public class DataHandler {
     private static ArrayBlockingQueue<byte[]> dataQ;
     private static ArrayBlockingQueue<byte[]> frameQ;
     //private static LinkedBlockingQueue<Byte> byteQ;
@@ -29,7 +30,8 @@ public class DataHandler implements Runnable {
     private static boolean check2 = false;
     protected HandlerThread handlerThread;
     protected Looper looper;
-    protected static Handler handler;
+    protected static Handler handler = null;
+    protected LidarRenderer lidarRenderer;
 
     public DataHandler() {
         if (frame == null) {
@@ -39,49 +41,31 @@ public class DataHandler implements Runnable {
             frameQ = new ArrayBlockingQueue<>(10);
         }
         dataQ = lidar.LidarModule.LidarHelper.getDataQ();
-//        executor = Executors.newSingleThreadExecutor();
-//        handlerThread = new HandlerThread("DHandler_print");
-//        handlerThread.start();
-//        looper = handlerThread.getLooper();
-//        handler  = new Handler(looper);
-        //this.dataLength = data.length;
+        handlerThread = new HandlerThread("DHandler");
+        handlerThread.start();
+        looper = handlerThread.getLooper();
+        handler  = new Handler(looper);
+        lidarRenderer = new LidarRenderer();
+
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                for (byte b : dataQ.take()){
-                    streamingHeader(b);
-                }
-//                byte[] arr = dataQ.take();
-//                for (int i = 0; i < arr.length-2; i++) {
-//                    byte b = arr[i];
-//                    if (b == _65_0x41) {
-//                        if (arr[i + 1] == _56_0x38) {
-//                            if (arr[i + 2] == _8_0x8) {
-//                                System.out.println(dataIndex);
-//                                if (dataIndex == 14407) frameQ.add(frame.clone());
-//                                dataIndex = 0;
-//                            }
-//                        }
-//                    }
-//                    if (dataIndex >= 14407) dataIndex = 0;
-//                    frame[dataIndex] = arr[i];
-//                    dataIndex++;
+//    @Override
+//    public void run() {
+//        while (true) {
+//            try {
+//                for (byte b : dataQ.take()){
+//                    streamingHeader(b);
 //                }
+//            } catch (ArrayIndexOutOfBoundsException arrEx) {
+//                dataIndex = 0;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//    }
 
-
-            } catch (ArrayIndexOutOfBoundsException arrEx) {
-                dataIndex = 0;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-    private static void streamingHeader(byte bite) {
+    private void streamingHeader(byte bite) {
         if (!check1 && bite == _65_0x41){
             check1 = true;
             check2 = false;
@@ -89,7 +73,7 @@ public class DataHandler implements Runnable {
             check2 = true;
         }else if(check2 && bite == _8_0x8){
             System.out.println(""+ frame[0] +":"+ dataIndex);
-            if (dataIndex == 14407) frameQ.add(frame.clone());
+            if (dataIndex == 14407) lidarRenderer.postToLidarHandler(frame.clone());
             dataIndex = 0;
             //frameQ.add(frame.clone());
             check1 = false;
@@ -102,6 +86,14 @@ public class DataHandler implements Runnable {
         frame[dataIndex] = bite;
         dataIndex++;
 
+    }
+
+    public void postToDataHandler(byte[] data){
+        handler.post(() -> {
+            for (byte b : data) {
+                streamingHeader(b);
+            }
+        });
     }
 
     public static ArrayBlockingQueue<byte[]> getFrameQ() {

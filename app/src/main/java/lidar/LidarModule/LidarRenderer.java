@@ -1,99 +1,165 @@
 package lidar.LidarModule;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.widget.ImageView;
 
 import com.example.insight.MainActivity;
 
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.*;
 
-public class LidarRenderer implements Runnable {
+public class LidarRenderer{
     private static ArrayBlockingQueue<byte[]> frameQ;
     private static ArrayBlockingQueue<Bitmap> bitmapQ;
     private static ArrayBlockingQueue<int[]> colorQ;
     private static ArrayBlockingQueue<int[]> hapticQ;
     private static int[] frameInt;
     private static int[] hapticInt;
-    private final Handler handler;
-    private final ImageView bitmapImageView;
     private static Bitmap oldBitmap;
     private static Bitmap newBitmap;
 
-    public LidarRenderer(Context context, ImageView bitmapImageView) {
+    private Handler uiHandler;
+    private HandlerThread handlerThread;
+    private ThreadPoolExecutor executor;
+    private static Handler handler;
+
+    private DataPoolScheduler dataPoolScheduler;
+
+    public LidarRenderer() {
         if (frameQ == null) LidarRenderer.frameQ = DataHandler.getFrameQ();
-        if (frameInt == null) LidarRenderer.frameInt = new int[9600];
-        if (hapticInt == null) LidarRenderer.hapticInt = new int[9600];
-        handler = new Handler(context.getMainLooper());
+        LidarRenderer.frameInt = new int[9600];
+        LidarRenderer.hapticInt = new int [9600];
         LidarRenderer.bitmapQ = new ArrayBlockingQueue<>(100);
         LidarRenderer.colorQ = new ArrayBlockingQueue<>(100);
         LidarRenderer.hapticQ = new ArrayBlockingQueue<>(100);
-        this.bitmapImageView = bitmapImageView;
+        dataPoolScheduler = new DataPoolScheduler();
+        initializeHandlers();
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                //Since the data is in bytes (0x__) and each pixel is three hex values (0x___)
-                //It is necessary to split a byte such that (0x11)(0x22)(0x33) --> (0x112)(0x233)
-                byte[] frame = frameQ.take();
-                int frameIndex = 0;
-                for (int i = 1; i < 14399; i+=3) {
-                    int a = frame[i]&0x0ff;
-                    int b = frame[i + 1]&0x0ff;
-                    int c = frame[i + 2]&0x0ff;
-//                    System.out.println(a+": "+Integer.toBinaryString(a));
-//                    System.out.println(b+": "+Integer.toBinaryString(b));
-//                    System.out.println(c+": "+Integer.toBinaryString(c));
-
-                    int first = a;
-                    int second = b;
-                    first <<= 4;
-                    first = first | b >>> 4;
-                    second = second & 0x0f;
-                    second <<= 8;
-                    second = second| c;
-
-//                    if(first > 4081 || second > 4081){
-//                        System.out.println(""+a+"| "+b+"| "+c+ " |" + first+ " |"+ second +"| "+ Integer.toBinaryString(first)+"| "+Integer.toBinaryString(second));
-//                    }
-                    hapticInt[frameIndex] = first;
-                    if (MainActivity.lidarUiState) {
-                        frameInt[frameIndex] = makeColor(first);
-                        frameInt[++frameIndex] = makeColor(second);
+    private void initializeHandlers() {
+        uiHandler = new Handler(Looper.getMainLooper());
+        handlerThread = new HandlerThread("LidarHandler");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
+                (4,  new ThreadFactory() {
+                    int threadNo = 1;
+                    @Override
+                    public Thread newThread(Runnable runnable) {
+                        return new Thread(runnable,"LidarExecutor:"+ threadNo++);
                     }
-                    hapticInt[frameIndex] = second;
-                    frameIndex++;
-                }
-                hapticQ.put(hapticInt.clone());
-                if (MainActivity.lidarUiState) {
-                    colorQ.put(frameInt.clone());
-                    oldBitmap = newBitmap;
-                    newBitmap = bitmapQ.take();
-                    //newBitmap = Bitmap.createBitmap(frameInt, 160, 60, Bitmap.Config.ARGB_8888);
-                    runOnUiThread(new Runnable() {
-                                      @Override
-                                      public void run() {
-                                          bitmapImageView.setImageBitmap(newBitmap);
-                                      }
-                                  }
-                    );
-                    oldBitmap.recycle();
-                    System.gc();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+                });
+    }
+
+//    @Override
+//    public void run() {
+//        while (true) {
+//            try {
+//                //Since the data is in bytes (0x__) and each pixel is three hex values (0x___)
+//                //It is necessary to split a byte such that (0x11)(0x22)(0x33) --> (0x112)(0x233)
+//                byte[] frame = frameQ.take();
+//                frameProcessing(frame);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+    private void frameProcessing(byte[] frame){
+        try {
+            //Since the data is in bytes (0x__) and each pixel is three hex values (0x___)
+            //It is necessary to split a byte such that (0x11)(0x22)(0x33) --> (0x112)(0x233)
+            int frameIndex = 0;
+
+            List<Callable<Void>> callables = new ArrayList<>();
+            callables.add(() -> {
+                byteToHexHandling(0, Arrays.copyOfRange(frame,1,3));
+                return null;
+            });
+
+            for (int i = 4; i < 14399; i+=3) {
+                int finalI = i;
+                callables.add(() -> {
+                    byteToHexHandling(finalI,frame);
+                    return null;
+                });
+//                int a = frame[i]&0x0ff;
+//                int b = frame[i + 1]&0x0ff;
+//                int c = frame[i + 2]&0x0ff;
+//
+//                int first = a;
+//                int second = b;
+//                first <<= 4;
+//                first = first | b >>> 4;
+//
+////                second = second & 0x0f;
+////                second <<= 8;
+////                second = second| c;
+//                second &= 0x0f;
+//                second <<= 8;
+//                second |= c;
+//
+//                hapticInt[frameIndex] = first;
+//                if (MainActivity.lidarUiState) {
+//                    frameInt[frameIndex] = makeColor(first);
+//                    frameInt[++frameIndex] = makeColor(second);
+//                }
+//                hapticInt[frameIndex] = second;
+//                frameIndex++;
             }
+
+            executor.invokeAll(callables);
+
+            dataPoolScheduler.postToDataPoolHandler(hapticInt.clone(),frameInt.clone());
+            //hapticQ.put(hapticInt.clone());
+            if (MainActivity.lidarUiState) {
+//                colorQ.put(frameInt.clone());
+//                oldBitmap = newBitmap;
+//                newBitmap = bitmapQ.take();
+//                //newBitmap = Bitmap.createBitmap(frameInt, 160, 60, Bitmap.Config.ARGB_8888);
+//                setBitmapOnUIThread(newBitmap);
+//                oldBitmap.recycle();
+//                System.gc();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    public static void stopRender() {
-        colorQ.clear();
-        oldBitmap.recycle();
-        newBitmap.recycle();
+    private void byteToHexHandling(int index, final byte[] frame){
+        int a = frame[index]&0x0ff;
+        int b = frame[index + 1]&0x0ff;
+        int c = frame[index + 2]&0x0ff;
+
+        int first = a;
+        int second = b;
+        first <<= 4;
+        first = first | b >>> 4;
+
+        second &= 0x0f;
+        second <<= 8;
+        second |= c;
+
+        int frameIndex = index/2 + index%2;
+        hapticInt[frameIndex] = first;
+        if (MainActivity.lidarUiState) {
+            frameInt[frameIndex] = makeColor(first);
+            frameInt[++frameIndex] = makeColor(second);
+        }
+        hapticInt[frameIndex] = second;
+    }
+
+    public void postToLidarHandler(byte[] frame){
+        handler.post(() ->{
+           frameProcessing(frame);
+        });
     }
 
     private static int makeColor(int value) {
@@ -105,8 +171,10 @@ public class LidarRenderer implements Runnable {
         return Color.argb(255, rValue, gValue, bValue);
     }
 
-    private void runOnUiThread(Runnable r) {
-        handler.post(r);
+    public static void stopRender() {
+        colorQ.clear();
+        oldBitmap.recycle();
+        newBitmap.recycle();
     }
 
     public static ArrayBlockingQueue<Bitmap> getBitmapQ() {

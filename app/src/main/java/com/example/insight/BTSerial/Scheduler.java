@@ -30,8 +30,8 @@ public class Scheduler{
     private HandlerThread handlerThread;
     private Handler handler;
 
-    private Semaphore cameraSemaphore = null;
-    private Semaphore completeCameraSemaphore = null;
+    private static Semaphore cameraSemaphore = null;
+    private static Semaphore completeCameraSemaphore = null;
     private long cameraDelay;
 
 

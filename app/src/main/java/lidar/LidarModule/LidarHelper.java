@@ -28,7 +28,10 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
     private static UsbSerialPort port;
     private static UsbDeviceConnection connection;
     private SerialInputOutputManager ioManager;
+    private DataHandler dataHandler;
 
+
+    //LidarHelper initializes -> DataHandler -> LidarRenderer ->
     public LidarHelper(UsbManager manager) {
         if (LidarHelper.dataQ == null){
             LidarHelper.dataQ = new ArrayBlockingQueue<>(1000);
@@ -36,6 +39,7 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
         if (LidarHelper.usbManager == null) {
             LidarHelper.usbManager = manager;
         }
+        dataHandler = new DataHandler();
         connectUsb();
     }
 
@@ -115,7 +119,8 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
     @Override
     public void onNewData(byte[] data) {
         //if (data.length > 0) dataQ.add(data);
-        dataQ.add(data);
+        //dataQ.add(data);
+        dataHandler.postToDataHandler(data);
     }
 
     @Override

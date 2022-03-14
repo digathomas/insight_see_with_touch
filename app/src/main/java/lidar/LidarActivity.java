@@ -32,6 +32,7 @@ public class LidarActivity {
     protected Thread hapticThread;
     private Context context;
     protected Scheduler scheduler;
+    protected LidarRenderer lidarRenderer;
 
     public LidarActivity(Context context,Scheduler scheduler){
         this.context = context;
@@ -55,29 +56,29 @@ public class LidarActivity {
     protected void onCreate() {
         this.bitmapImageView = MainActivity.getBitmapImageView();
 
-        if (dataThread == null) {
-            dataThread = new Thread(new DataHandler());
-            dataThread.setPriority(Thread.MAX_PRIORITY);
-            dataThread.setName("dataThread");
-            dataThread.start();
-        }
-        if (renderThread == null) {
-            renderThread = new Thread(new LidarRenderer(this.context, bitmapImageView));
-            renderThread.setPriority(Thread.MAX_PRIORITY);
-            renderThread.setName("renderThread");
-            renderThread.start();
-        }
-        if (bitmapThread == null){
-            bitmapThread = new Thread(new BitmapGenerator());
-            bitmapThread.setPriority(Thread.MAX_PRIORITY);
-            bitmapThread.setName("Bitmap Thread");
-            bitmapThread.start();
-        }
-        if (hapticThread == null){
-            hapticThread = new Thread(new DataPoolScheduler());
-            hapticThread.setPriority(Thread.MAX_PRIORITY);
-            hapticThread.setName("ThreadPool");
-            hapticThread.start();
-        }
+//        if (dataThread == null) {
+//            dataThread = new Thread(new DataHandler());
+//            dataThread.setPriority(Thread.MAX_PRIORITY);
+//            dataThread.setName("dataThread");
+//            dataThread.start();
+//        }
+//        if (renderThread == null) {
+//            renderThread = new Thread(new LidarRenderer(bitmapImageView));
+//            renderThread.setPriority(Thread.MAX_PRIORITY);
+//            renderThread.setName("renderThread");
+//            renderThread.start();
+//        }
+//        if (bitmapThread == null){
+//            bitmapThread = new Thread(new BitmapGenerator());
+//            bitmapThread.setPriority(Thread.MAX_PRIORITY);
+//            bitmapThread.setName("Bitmap Thread");
+//            bitmapThread.start();
+//        }
+//        if (hapticThread == null){
+//            hapticThread = new Thread(new DataPoolScheduler());
+//            hapticThread.setPriority(Thread.MAX_PRIORITY);
+//            hapticThread.setName("ThreadPool");
+//            hapticThread.start();
+//        }
     }
 }
