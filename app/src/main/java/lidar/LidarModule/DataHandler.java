@@ -41,7 +41,7 @@ public class DataHandler {
             frameQ = new ArrayBlockingQueue<>(10);
         }
         dataQ = lidar.LidarModule.LidarHelper.getDataQ();
-        handlerThread = new HandlerThread("DHandler");
+        handlerThread = new HandlerThread("DataHandler",10);
         handlerThread.start();
         looper = handlerThread.getLooper();
         handler  = new Handler(looper);

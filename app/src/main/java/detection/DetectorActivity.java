@@ -150,7 +150,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
 
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
-    detector.setNumThreads(4);
+    detector.setNumThreads(2);
   }
 
   @Override
@@ -178,7 +178,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     try {
-      TimeUnit.MILLISECONDS.sleep(10);
+      TimeUnit.MILLISECONDS.sleep(100);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }

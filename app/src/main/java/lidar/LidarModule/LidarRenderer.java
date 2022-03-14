@@ -48,7 +48,7 @@ public class LidarRenderer{
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
-                (4,  new ThreadFactory() {
+                (2,  new ThreadFactory() {
                     int threadNo = 1;
                     @Override
                     public Thread newThread(Runnable runnable) {
