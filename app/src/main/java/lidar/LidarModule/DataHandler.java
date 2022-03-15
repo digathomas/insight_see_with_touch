@@ -32,6 +32,7 @@ public class DataHandler {
     protected Looper looper;
     protected static Handler handler = null;
     protected LidarRenderer lidarRenderer;
+    private ThreadPoolExecutor executor;
 
     public DataHandler() {
         if (frame == null) {
@@ -41,12 +42,25 @@ public class DataHandler {
             frameQ = new ArrayBlockingQueue<>(10);
         }
         dataQ = lidar.LidarModule.LidarHelper.getDataQ();
+
+        initializeHandlers();
+        lidarRenderer = new LidarRenderer(handler,executor);
+
+    }
+
+    private void initializeHandlers() {
         handlerThread = new HandlerThread("DataHandler",10);
         handlerThread.start();
-        looper = handlerThread.getLooper();
-        handler  = new Handler(looper);
-        lidarRenderer = new LidarRenderer();
+        handler = new Handler(handlerThread.getLooper());
 
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
+                (1,new ThreadFactory() {
+                    int threadNo = 1;
+                    @Override
+                    public Thread newThread(Runnable runnable) {
+                        return new Thread(runnable,"ExecutorPool:"+ threadNo++);
+                    }
+                });
     }
 
 //    @Override
@@ -73,7 +87,7 @@ public class DataHandler {
             check2 = true;
         }else if(check2 && bite == _8_0x8){
             System.out.println(""+ frame[0] +":"+ dataIndex);
-            if (dataIndex == 14407) lidarRenderer.postToLidarHandler(frame.clone());
+            if (dataIndex == 14407) lidarRenderer.frameProcessing(frame.clone());
             dataIndex = 0;
             //frameQ.add(frame.clone());
             check1 = false;

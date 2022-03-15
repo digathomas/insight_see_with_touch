@@ -27,34 +27,36 @@ public class LidarRenderer{
     private Handler uiHandler;
     private HandlerThread handlerThread;
     private ThreadPoolExecutor executor;
-    private static Handler handler;
+    private Handler handler;
 
     private DataPoolScheduler dataPoolScheduler;
 
-    public LidarRenderer() {
+    public LidarRenderer(Handler handler, ThreadPoolExecutor executor) {
         if (frameQ == null) LidarRenderer.frameQ = DataHandler.getFrameQ();
         LidarRenderer.frameInt = new int[9600];
         LidarRenderer.hapticInt = new int [9600];
         LidarRenderer.bitmapQ = new ArrayBlockingQueue<>(100);
         LidarRenderer.colorQ = new ArrayBlockingQueue<>(100);
         LidarRenderer.hapticQ = new ArrayBlockingQueue<>(100);
-        dataPoolScheduler = new DataPoolScheduler();
+        dataPoolScheduler = new DataPoolScheduler(executor);
+        this.handler = handler;
+        this.executor = executor;
         initializeHandlers();
     }
 
     private void initializeHandlers() {
         uiHandler = new Handler(Looper.getMainLooper());
-        handlerThread = new HandlerThread("LidarHandler");
-        handlerThread.start();
-        handler = new Handler(handlerThread.getLooper());
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
-                (2,  new ThreadFactory() {
-                    int threadNo = 1;
-                    @Override
-                    public Thread newThread(Runnable runnable) {
-                        return new Thread(runnable,"LidarExecutor:"+ threadNo++);
-                    }
-                });
+//        handlerThread = new HandlerThread("LidarHandler");
+//        handlerThread.start();
+//        handler = new Handler(handlerThread.getLooper());
+//        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
+//                (2,  new ThreadFactory() {
+//                    int threadNo = 1;
+//                    @Override
+//                    public Thread newThread(Runnable runnable) {
+//                        return new Thread(runnable,"LidarExecutor:"+ threadNo++);
+//                    }
+//                });
     }
 
 //    @Override
@@ -71,48 +73,26 @@ public class LidarRenderer{
 //        }
 //    }
 
-    private void frameProcessing(byte[] frame){
+    public void frameProcessing(byte[] frame){
         try {
             //Since the data is in bytes (0x__) and each pixel is three hex values (0x___)
             //It is necessary to split a byte such that (0x11)(0x22)(0x33) --> (0x112)(0x233)
             int frameIndex = 0;
 
-            List<Callable<Void>> callables = new ArrayList<>();
+            //List<Callable<Void>> callables = new ArrayList<>();
 
             for (int i = 0; i < 4799; i++) {
-                int finalI = i;
-                callables.add(() -> {
-                    byteToHexHandling(finalI,frame);
-                    return null;
-                });
-//                int a = frame[i]&0x0ff;
-//                int b = frame[i + 1]&0x0ff;
-//                int c = frame[i + 2]&0x0ff;
-//
-//                int first = a;
-//                int second = b;
-//                first <<= 4;
-//                first = first | b >>> 4;
-//
-////                second = second & 0x0f;
-////                second <<= 8;
-////                second = second| c;
-//                second &= 0x0f;
-//                second <<= 8;
-//                second |= c;
-//
-//                hapticInt[frameIndex] = first;
-//                if (MainActivity.lidarUiState) {
-//                    frameInt[frameIndex] = makeColor(first);
-//                    frameInt[++frameIndex] = makeColor(second);
-//                }
-//                hapticInt[frameIndex] = second;
-//                frameIndex++;
+                byteToHexHandling(i,frame);
+//                int finalI = i;
+//                callables.add(() -> {
+//                    byteToHexHandling(finalI,frame);
+//                    return null;
+//                });
             }
 
-            executor.invokeAll(callables);
+            //executor.invokeAll(callables);
 
-            dataPoolScheduler.postToDataPoolHandler(hapticInt.clone(),frameInt.clone());
+            dataPoolScheduler.sectorGenerator(hapticInt.clone(),frameInt.clone());
             //hapticQ.put(hapticInt.clone());
             if (MainActivity.lidarUiState) {
 //                colorQ.put(frameInt.clone());
@@ -154,7 +134,7 @@ public class LidarRenderer{
     }
 
     public void postToLidarHandler(byte[] frame){
-        handler.post(() ->{
+        executor.submit(() ->{
            frameProcessing(frame);
         });
     }
