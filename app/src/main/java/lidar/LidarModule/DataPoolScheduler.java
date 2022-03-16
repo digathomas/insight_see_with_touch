@@ -21,47 +21,23 @@ public class DataPoolScheduler{
     private HandlerThread handlerThread;
     private Handler handler;
     private BLE ble;
-    private ThreadPoolExecutor executor;
     private int horizontalSectors = 5;
     private int verticalSectors = 2;
     private final static int FRAME_WIDTH = 160;
     private final static int FRAME_HEIGHT = 60;
     private BitmapGenerator bitmapGenerator;
 
-    public DataPoolScheduler(ThreadPoolExecutor executor) {
+    public DataPoolScheduler() {
         DataPoolScheduler.hapticQ = LidarRenderer.getHapticQ();
         DataPoolScheduler.LiDARQ = Scheduler.getliDARQ();
-        bitmapGenerator = new BitmapGenerator(executor);
-        this.executor = executor;
+        bitmapGenerator = new BitmapGenerator();
         this.ble = MainActivity.getBle();
         initializeHandlers();
     }
 
     private void initializeHandlers() {
-//        handlerThread = new HandlerThread("DataPoolHandler");
-//        handlerThread.start();
-//        handler = new Handler(handlerThread.getLooper());
-//        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
-//                (2,  new ThreadFactory() {
-//                    int threadNo = 1;
-//                    @Override
-//                    public Thread newThread(Runnable runnable) {
-//                        return new Thread(runnable,"DataPoolExecutor:"+ threadNo++);
-//                    }
-//                });
+        handler = new Handler(Looper.getMainLooper());
     }
-
-//    @Override
-//    public void run() {
-//        while (true) {
-//            try {
-//                int[] frame = hapticQ.take();
-//                sectorGenerator(frame);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     public void sectorGenerator(int[] hapticInt, int[] frameInt){
         try{
@@ -93,9 +69,6 @@ public class DataPoolScheduler{
                 if (value > priority) priority = value;
                 serialOut[i] = value;
             }
-            //System.out.println(hapticOut);
-            //System.out.println(Arrays.toString(serialOut));
-            //LiDARQ.put(new ThreeTuple<>(serialOut, Instant.now(), priority));
             //Goes to bitmapGenerator and to ble
             lidarToBle(serialOut);
             if (MainActivity.lidarUiState) bitmapGenerator.generateBitmap(serialOut,frameInt);
@@ -104,14 +77,8 @@ public class DataPoolScheduler{
         }
     }
 
-    public void postToDataPoolHandler(int[] hapticInt, int[] frameInt){
-        executor.submit(() ->{
-            sectorGenerator(hapticInt, frameInt);
-        });
-    }
-
     private void lidarToBle(int[] serialOut){
-        executor.submit(() ->{
+        handler.post(() ->{
             ble.writeToGatt(BLE.LEFT_GATT,serialOut);
         });
     }

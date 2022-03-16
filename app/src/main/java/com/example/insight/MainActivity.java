@@ -29,7 +29,6 @@ import com.example.insight.BTSerial.Scheduler;
 import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
-import lidar.LidarActivity;
 import lidar.LidarModule.LidarHelper;
 import lidar.LidarModule.LidarRenderer;
 
@@ -40,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
 
     private Intent intent;
-    private LidarActivity lidarActivity;
     protected LidarHelper lidarHelper;
     private DetectorActivity detectorActivity;
 
@@ -106,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
                 lidarHelper.connectUsb();
             }
         }
-        lidarActivity = new LidarActivity(this,scheduler);
     }
 
     @Override

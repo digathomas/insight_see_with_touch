@@ -21,57 +21,20 @@ public class LidarRenderer{
     private static ArrayBlockingQueue<int[]> hapticQ;
     private static int[] frameInt;
     private static int[] hapticInt;
-    private static Bitmap oldBitmap;
-    private static Bitmap newBitmap;
 
-    private Handler uiHandler;
-    private HandlerThread handlerThread;
-    private ThreadPoolExecutor executor;
     private Handler handler;
-
     private DataPoolScheduler dataPoolScheduler;
 
-    public LidarRenderer(Handler handler, ThreadPoolExecutor executor) {
+    public LidarRenderer(Handler handler) {
         if (frameQ == null) LidarRenderer.frameQ = DataHandler.getFrameQ();
         LidarRenderer.frameInt = new int[9600];
         LidarRenderer.hapticInt = new int [9600];
         LidarRenderer.bitmapQ = new ArrayBlockingQueue<>(100);
         LidarRenderer.colorQ = new ArrayBlockingQueue<>(100);
         LidarRenderer.hapticQ = new ArrayBlockingQueue<>(100);
-        dataPoolScheduler = new DataPoolScheduler(executor);
+        dataPoolScheduler = new DataPoolScheduler();
         this.handler = handler;
-        this.executor = executor;
-        initializeHandlers();
     }
-
-    private void initializeHandlers() {
-        uiHandler = new Handler(Looper.getMainLooper());
-//        handlerThread = new HandlerThread("LidarHandler");
-//        handlerThread.start();
-//        handler = new Handler(handlerThread.getLooper());
-//        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool
-//                (2,  new ThreadFactory() {
-//                    int threadNo = 1;
-//                    @Override
-//                    public Thread newThread(Runnable runnable) {
-//                        return new Thread(runnable,"LidarExecutor:"+ threadNo++);
-//                    }
-//                });
-    }
-
-//    @Override
-//    public void run() {
-//        while (true) {
-//            try {
-//                //Since the data is in bytes (0x__) and each pixel is three hex values (0x___)
-//                //It is necessary to split a byte such that (0x11)(0x22)(0x33) --> (0x112)(0x233)
-//                byte[] frame = frameQ.take();
-//                frameProcessing(frame);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     public void frameProcessing(byte[] frame){
         try {
@@ -79,30 +42,11 @@ public class LidarRenderer{
             //It is necessary to split a byte such that (0x11)(0x22)(0x33) --> (0x112)(0x233)
             int frameIndex = 0;
 
-            //List<Callable<Void>> callables = new ArrayList<>();
-
             for (int i = 0; i < 4799; i++) {
                 byteToHexHandling(i,frame);
-//                int finalI = i;
-//                callables.add(() -> {
-//                    byteToHexHandling(finalI,frame);
-//                    return null;
-//                });
             }
-
-            //executor.invokeAll(callables);
 
             dataPoolScheduler.sectorGenerator(hapticInt.clone(),frameInt.clone());
-            //hapticQ.put(hapticInt.clone());
-            if (MainActivity.lidarUiState) {
-//                colorQ.put(frameInt.clone());
-//                oldBitmap = newBitmap;
-//                newBitmap = bitmapQ.take();
-//                //newBitmap = Bitmap.createBitmap(frameInt, 160, 60, Bitmap.Config.ARGB_8888);
-//                setBitmapOnUIThread(newBitmap);
-//                oldBitmap.recycle();
-//                System.gc();
-            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,12 +77,6 @@ public class LidarRenderer{
         hapticInt[frameIndex+1] = second;
     }
 
-    public void postToLidarHandler(byte[] frame){
-        executor.submit(() ->{
-           frameProcessing(frame);
-        });
-    }
-
     private static int makeColor(int value) {
         int rValue = (value+1)/4;
         int gValue = (value+1)/4;
@@ -148,11 +86,6 @@ public class LidarRenderer{
         return Color.argb(255, rValue, gValue, bValue);
     }
 
-    public static void stopRender() {
-        colorQ.clear();
-        oldBitmap.recycle();
-        newBitmap.recycle();
-    }
 
     public static ArrayBlockingQueue<Bitmap> getBitmapQ() {
         return bitmapQ;

@@ -28,16 +28,12 @@ public class BitmapGenerator{
     private HandlerThread handlerThread;
     private Handler handler;
     private ImageView bitmapImageView;
-    private static Bitmap oldBitmap;
-    private static Bitmap newBitmap;
-    private ThreadPoolExecutor executor;
 
-    public BitmapGenerator(ThreadPoolExecutor executor){
+    public BitmapGenerator(){
         BitmapGenerator.bitmapQ = LidarRenderer.getBitmapQ();
         BitmapGenerator.colorQ = LidarRenderer.getColorQ();
         BitmapGenerator.liDARQ = Scheduler.getliDARQ();
         this.bitmapImageView = MainActivity.getBitmapImageView();
-        this.executor = executor;
         initializeHandlers();
 
     }
@@ -101,9 +97,4 @@ public class BitmapGenerator{
         uiHandler.post(() -> bitmapImageView.setImageBitmap(newBitmap));
     }
 
-    public void postToBitmapHandler(int[] serialOut, int[] frameInt){
-        executor.submit(() -> {
-           generateBitmap(serialOut,frameInt);
-        });
-    }
 }
