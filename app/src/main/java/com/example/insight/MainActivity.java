@@ -8,6 +8,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.PowerManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
@@ -60,11 +61,18 @@ public class MainActivity extends AppCompatActivity {
     //BLE
     private static BLE ble;
 
+    //Wake Lock
+    private static PowerManager powerManager;
+    private static PowerManager.WakeLock wakeLock;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        powerManager = getApplicationContext().getSystemService(PowerManager.class);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Insight::wakeLockTag");
 
         //BLE
         if (ble == null){
@@ -138,6 +146,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        try{
+            wakeLock.release();
+        } catch (Exception ignored){}
         if (ble != null){
             try{
                 ble.close();
@@ -298,5 +309,9 @@ public class MainActivity extends AppCompatActivity {
 
     public static BLE getBle() {
         return ble;
+    }
+
+    public static PowerManager.WakeLock getWakeLock() {
+        return wakeLock;
     }
 }
