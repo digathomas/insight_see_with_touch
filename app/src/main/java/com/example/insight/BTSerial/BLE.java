@@ -117,6 +117,20 @@ public class BLE {
         }
     };
 
+    //write 20 int values with conversion to gatts with header
+    public void writeToGatt(int[]value, int header){
+        if (value.length == 20) {
+            int leftHandValues[] = Arrays.copyOfRange(value,0,10);
+            int rightHandValues[] = Arrays.copyOfRange(value,10,20);
+
+            writeToGatt(LEFT_GATT,leftHandValues, header);
+            writeToGatt(RIGHT_GATT,rightHandValues, header);
+        }
+        else{
+            Log.w("WriteToGatt","Unable to write to Gatt with int array not of size 20");
+        }
+    }
+
     //write 20 int values with conversion to gatts
     public void writeToGatt(int[]value){
         if (value.length == 20) {
