@@ -200,11 +200,12 @@ public class BLE {
 
     //Sending correct byte values between 0 and 16
     private byte inBoundValue(int value){
-        if (value > 17)
-            return 16;
+        int out = value;
+        if (value > 15)
+            out = 15;
         if (value < 0)
-            return 0;
-        return (byte)value;
+            out = 0;
+        return (byte)(15-out);
     }
 
 
