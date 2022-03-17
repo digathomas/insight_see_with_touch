@@ -187,13 +187,25 @@ public class BLE {
         byte[] byteArr =  new byte[11];
         if (arr.length == 10) {
             byteArr[0] = 127;
-            for (int i = 0; i < 10; i++) {
-                if (i % 2 == 0)
-                    byteArr[(i / 2) + 1] = inBoundValue(arr[i]);
-                else {
-                    byteArr[(i / 2 + 5) + 1] = inBoundValue(arr[i]);
-                }
-            }
+            byteArr[1] = inBoundValue(arr[4]);
+            byteArr[2] = inBoundValue(arr[5]);
+            byteArr[3] = inBoundValue(arr[2]);
+            byteArr[4] = inBoundValue(arr[3]);
+            byteArr[5] = inBoundValue(arr[0]);
+            byteArr[6] = inBoundValue(arr[1]);
+            byteArr[7] = inBoundValue(arr[8]);
+            byteArr[8] = inBoundValue(arr[9]);
+            byteArr[9] = inBoundValue(arr[6]);
+            byteArr[10] = inBoundValue(arr[7]);
+
+//            for (int i = 0; i < 10; i++) {
+//                byteArr[i+1] = inBoundValue(arr[i]);
+//                if (i % 2 == 0)
+//                    byteArr[(i / 2) + 1] = inBoundValue(arr[i]);
+//                else {
+//                    byteArr[(i / 2 + 5) + 1] = inBoundValue(arr[i]);
+//                }
+//            }
         }
         return byteArr;
     }
