@@ -4,7 +4,6 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 
 import android.os.PowerManager;
-import android.os.Process;
 
 import com.example.insight.MainActivity;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
