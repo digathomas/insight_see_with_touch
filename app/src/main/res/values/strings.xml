@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Insight</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZGlnYXRob21hcyIsImEiOiJja3lzZW94cHExMzZqMzFvN3Y2bzlwdjQ1In0.Xga0JlLhOAIHUh8D3Og7vw</string>
     <string name="tfe_od_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
 </resources>
