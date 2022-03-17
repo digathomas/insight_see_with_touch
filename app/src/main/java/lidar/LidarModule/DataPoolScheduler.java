@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class DataPoolScheduler{
-    private static ArrayBlockingQueue<int[]> hapticQ;
-    private HandlerThread handlerThread;
     private Handler handler;
     private BLE ble;
     private int horizontalSectors = 5;
@@ -24,7 +22,6 @@ public class DataPoolScheduler{
     private BitmapGenerator bitmapGenerator;
 
     public DataPoolScheduler() {
-        DataPoolScheduler.hapticQ = LidarRenderer.getHapticQ();
         bitmapGenerator = new BitmapGenerator();
         this.ble = MainActivity.getBle();
         initializeHandlers();
@@ -38,8 +35,6 @@ public class DataPoolScheduler{
         try{
             List<SectorMax> calls = new ArrayList<>();
             List<Integer> hapticOut = new ArrayList<>();
-//            List<Future<Integer>> callsOut = new ArrayList<>();
-            //TODO: talk to mathew about motor addressing
             int sectorWidth = FRAME_WIDTH/horizontalSectors;
             int sectorHeight = FRAME_HEIGHT/verticalSectors;
             for (int i = 0; i < horizontalSectors; i++) {
@@ -48,14 +43,10 @@ public class DataPoolScheduler{
                     int right = left + sectorWidth;
                     int top = j * sectorHeight;
                     int bottom = top + sectorHeight;
-//                    calls.add(new SectorMax(left, right, top, bottom, hapticInt));
                     hapticOut.add(new SectorMax(left, right, top, bottom, hapticInt).call());
                 }
             }
-//            callsOut = executor.invokeAll(calls);
-//            for (Future f : callsOut) hapticOut.add((Integer) f.get());
             System.out.println(hapticOut);
-            //TODO: make generic
             int[] serialOut = new int[20];
             Arrays.fill(serialOut, 0);
             int priority = -1;

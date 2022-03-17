@@ -16,16 +16,10 @@ import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class BitmapGenerator{
-    private static ArrayBlockingQueue<Bitmap> bitmapQ;
-    private static ArrayBlockingQueue<int[]> colorQ;
     private Handler uiHandler;
-    private HandlerThread handlerThread;
-    private Handler handler;
     private ImageView bitmapImageView;
 
     public BitmapGenerator(){
-        BitmapGenerator.bitmapQ = LidarRenderer.getBitmapQ();
-        BitmapGenerator.colorQ = LidarRenderer.getColorQ();
         this.bitmapImageView = MainActivity.getBitmapImageView();
         initializeHandlers();
 
@@ -33,15 +27,6 @@ public class BitmapGenerator{
 
     private void initializeHandlers() {
         uiHandler = new Handler(Looper.getMainLooper());
-//        handlerThread = new HandlerThread("BitmapGenerator");
-//        handlerThread.start();
-//        handler = new Handler(handlerThread.getLooper());
-    }
-
-    public void run() {
-        while(true){
-
-        }
     }
 
     public void generateBitmap(int[] serialOut, int[] frameInt){

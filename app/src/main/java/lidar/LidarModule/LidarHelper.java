@@ -18,13 +18,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class LidarHelper implements SerialInputOutputManager.Listener {
     private static final int BAUD_RATE_3M = 3_000_000;
-    private static final int BAUD_RATE_250K = 250_000;
     private static final int TIMEOUT = 1000;
-    private static final byte[] GET_DEVICE_INFO = {(byte)0x5A, (byte)0x77, (byte)-1, (byte) 0x02, (byte) 0x0, (byte)0x10, (byte)0x0, (byte)0x12};
     private static final byte[] THREE_D_MODE = {(byte)0x5A, (byte)0x77, (byte)-1, (byte)0x02, (byte) 0x0, (byte) 0x08, (byte) 0x0, (byte) 0x0A};
     private static final byte[] STOP = {(byte)0x5A, (byte)0x77, (byte)-1, (byte)0x02, (byte) 0x0, (byte) 0x02, (byte)0x0, (byte)0x0};
-    private static final byte[] SET_BAUD_3M = {(byte)0x5A, (byte)0x77, (byte)-1, (byte)0x02, (byte) 0x0, (byte)0x12, (byte)0x55, (byte)0x97};
-    private static final byte[] SET_BAUD_250K = {(byte)0x5A, (byte)0x77, (byte)-1, (byte)0x02, (byte) 0x0, (byte)0x12, (byte)0x77, (byte)0xB5};
     private static ArrayBlockingQueue<byte[]> dataQ;
 
     private static UsbManager usbManager;
@@ -36,7 +32,6 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
     private PowerManager.WakeLock wakeLock;
 
 
-    //LidarHelper initializes -> DataHandler -> LidarRenderer ->
     public LidarHelper(UsbManager manager) {
         if (LidarHelper.dataQ == null){
             LidarHelper.dataQ = new ArrayBlockingQueue<>(1000);
@@ -50,10 +45,6 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
         }
         dataHandler = new DataHandler();
         connectUsb();
-    }
-
-    public LidarHelper LidarHelper() throws Exception {
-        return new LidarHelper(null);
     }
 
     public void connectUsb() {
@@ -82,26 +73,6 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
             } catch (IOException e) {
                 e.printStackTrace();
             };
-        }
-    }
-
-    public boolean sendInfoRequest() throws IOException {
-        if (connection != null) {
-            port.write(GET_DEVICE_INFO, TIMEOUT);
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
-    public boolean sendSetBaud() throws IOException{
-        if (connection != null) {
-            port.write(SET_BAUD_3M, TIMEOUT);
-            return true;
-        }
-        else{
-            return false;
         }
     }
 
@@ -135,13 +106,5 @@ public class LidarHelper implements SerialInputOutputManager.Listener {
     @Override
     public void onRunError(Exception e) {
 
-    }
-
-    public static void closePort() throws IOException{
-        port.close();
-    }
-
-    public static ArrayBlockingQueue<byte[]> getDataQ() {
-        return dataQ;
     }
 }

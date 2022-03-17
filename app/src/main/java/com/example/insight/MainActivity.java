@@ -6,31 +6,23 @@ import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.PowerManager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 
 import com.example.insight.BTSerial.BLE;
 
-import com.example.insight.BTSerial.Scheduler;
-import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
 import lidar.LidarModule.LidarHelper;
-import lidar.LidarModule.LidarRenderer;
 
 import java.io.IOException;
 
@@ -43,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private DetectorActivity detectorActivity;
 
     private Thread detectorThread;
-    private static OverlayView trackingOverlay ;
     private static FrameLayout container;
     private static ImageView bitmapImageView;
 
@@ -53,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private static Boolean objectDetectionState = true;
     public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
-
-    private Scheduler scheduler;
 
     //BLE
     private static BLE ble;
@@ -76,10 +65,6 @@ public class MainActivity extends AppCompatActivity {
         if (ble == null){
             ble = new BLE(this);
         }
-
-        //Scheduler
-        this.scheduler = new Scheduler();
-        scheduler.run();
 
         //Camera Permissions
         if(!hasPermission()){
@@ -119,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (detectorActivity == null) {
             detectorThread = new Thread(() -> {
-                detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager(),scheduler);
+                detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
             });
             detectorThread.start();
         }else{
@@ -248,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void resumeHandlerThread(){
         detectorThread = new Thread(() -> {
-            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager(), scheduler);
+            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
         });
         detectorThread.start();
     }
@@ -294,10 +279,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return true;
-    }
-
-    public static OverlayView getTrackingOverlay(){
-        return trackingOverlay;
     }
 
     public static ImageView getBitmapImageView(){
