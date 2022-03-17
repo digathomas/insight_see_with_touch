@@ -33,6 +33,7 @@ import lidar.LidarModule.LidarHelper;
 import lidar.LidarModule.LidarRenderer;
 
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,14 +64,31 @@ public class MainActivity extends AppCompatActivity {
     private static PowerManager powerManager;
     private static PowerManager.WakeLock wakeLock;
 
+    //lidar to ble semaphore
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // Checking for permissions
+        PackageManager pm = this.getPackageManager();
+        int hasPerm2 = pm.checkPermission(
+                Manifest.permission.WAKE_LOCK,
+                this.getPackageName());
+        if (hasPerm2 == PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Has permission: wake");
+        }
+        else System.out.println("Doesn't have permission: wake");
+
+
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         powerManager = getApplicationContext().getSystemService(PowerManager.class);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Insight::wakeLockTag");
+
+        if (powerManager.isIgnoringBatteryOptimizations("insight"))
+            System.out.println("Is ignoring");
+        else System.out.println("Is not ignoring");
 
         //BLE
         if (ble == null){
