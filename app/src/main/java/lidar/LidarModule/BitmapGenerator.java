@@ -10,19 +10,13 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.widget.ImageView;
-import com.example.insight.BTSerial.Scheduler;
-import com.example.insight.BTSerial.ThreeTuple;
 import com.example.insight.MainActivity;
 
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class BitmapGenerator{
     private static ArrayBlockingQueue<Bitmap> bitmapQ;
-    private static ArrayBlockingQueue<ThreeTuple<int[]>> liDARQ;
     private static ArrayBlockingQueue<int[]> colorQ;
     private Handler uiHandler;
     private HandlerThread handlerThread;
@@ -32,7 +26,6 @@ public class BitmapGenerator{
     public BitmapGenerator(){
         BitmapGenerator.bitmapQ = LidarRenderer.getBitmapQ();
         BitmapGenerator.colorQ = LidarRenderer.getColorQ();
-        BitmapGenerator.liDARQ = Scheduler.getliDARQ();
         this.bitmapImageView = MainActivity.getBitmapImageView();
         initializeHandlers();
 

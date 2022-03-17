@@ -35,8 +35,8 @@ import android.view.View;
 import android.widget.*;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentManager;
-import com.example.insight.BTSerial.Scheduler;
-import com.example.insight.BTSerial.ThreeTuple;
+import com.example.insight.BTSerial.BLE;
+import com.example.insight.MainActivity;
 import com.example.insight.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import detection.env.ImageUtils;
@@ -44,7 +44,6 @@ import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 public abstract class CameraActivity
@@ -83,16 +82,16 @@ public abstract class CameraActivity
   protected Activity activity;
   protected Context context;
   protected FragmentManager fragmentManager;
-  protected PriorityBlockingQueue<ThreeTuple<Detector.Recognition>> cameraQ;
-  protected Scheduler scheduler;
+  protected Semaphore cameraSemaphore;
+  protected BLE ble;
 
-  public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager,Scheduler scheduler){
+  public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager){
     this.context = context;
     this.activity = activity;
     this.fragmentManager = fragmentManager;
-    this.scheduler = scheduler;
+    this.ble = MainActivity.getBle();
+    cameraSemaphore = new Semaphore(0);
 
-    cameraQ = Scheduler.getCameraQ();
     setFragment();
     initializeHandlers();
   }
@@ -227,6 +226,12 @@ public abstract class CameraActivity
   protected synchronized void runInBackground(final Runnable r) {
     if (handler != null) {
       handler.post(r);
+    }
+  }
+
+  protected synchronized void runDelayed(final Runnable r, long milliseconds) {
+    if (handler != null) {
+      handler.postDelayed(r,milliseconds);
     }
   }
 

@@ -5,11 +5,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 import com.example.insight.BTSerial.BLE;
-import com.example.insight.BTSerial.Scheduler;
-import com.example.insight.BTSerial.ThreeTuple;
 import com.example.insight.MainActivity;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +14,6 @@ import java.util.concurrent.*;
 
 public class DataPoolScheduler{
     private static ArrayBlockingQueue<int[]> hapticQ;
-    private static ArrayBlockingQueue<ThreeTuple<int[]>> LiDARQ;
     private HandlerThread handlerThread;
     private Handler handler;
     private BLE ble;
@@ -29,7 +25,6 @@ public class DataPoolScheduler{
 
     public DataPoolScheduler() {
         DataPoolScheduler.hapticQ = LidarRenderer.getHapticQ();
-        DataPoolScheduler.LiDARQ = Scheduler.getliDARQ();
         bitmapGenerator = new BitmapGenerator();
         this.ble = MainActivity.getBle();
         initializeHandlers();

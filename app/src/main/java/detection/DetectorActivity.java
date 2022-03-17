@@ -23,13 +23,12 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Style;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
-import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 import androidx.fragment.app.FragmentManager;
-import com.example.insight.BTSerial.Scheduler;
-import com.example.insight.BTSerial.ThreeTuple;
+import com.example.insight.BTSerial.BLE;
+import com.example.insight.BTSerial.BrailleParser;
 import com.example.insight.R;
 import detection.customview.OverlayView;
 import detection.customview.OverlayView.DrawCallback;
@@ -40,11 +39,8 @@ import org.tensorflow.lite.examples.detection.tflite.TFLiteObjectDetectionAPIMod
 import detection.tracking.MultiBoxTracker;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -65,6 +61,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
   private static final boolean SAVE_PREVIEW_BITMAP = false;
   private static final float TEXT_SIZE_DIP = 10;
+  private final byte[] zeroArray = {127,0,0,0,0,0,0,0,0,0,0};
   OverlayView trackingOverlay;
   private Integer sensorOrientation;
 
@@ -87,8 +84,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private BorderedText borderedText;
   public static Detector.Recognition sharedRecognition = null;
 
-  public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager, Scheduler scheduler) {
-    super(context, activity, fragmentManager,scheduler);
+  public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
+    super(context, activity, fragmentManager);
+    semaphoreRelease(2000);
   }
 
 
@@ -150,7 +148,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
 
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
-    detector.setNumThreads(2);
+    detector.setNumThreads(1);
   }
 
   @Override
@@ -224,7 +222,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
             computingDetection = false;
 
-            if (scheduler.getCameraSemaphore().tryAcquire()) {
+            if (cameraSemaphore.tryAcquire()) {
               sendToPriotittyModule(mappedRecognitions);
             }
           }
@@ -277,7 +275,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     runInBackground(new Runnable() {
       @Override
       public void run() {
-        scheduler.getCompleteCameraSemaphore().tryAcquire();
         if (!recognitionList.isEmpty()) {
           Detector.Recognition highestPriority = null;
           float highestArea = -1;
@@ -290,11 +287,46 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               highestPriority = result;
             }
           }
-          sharedRecognition = highestPriority;
+          sendCameraDetectionToBle(highestPriority.getTitle());
         }
-        scheduler.getCompleteCameraSemaphore().release();
+
       }
     });
+  }
+
+  protected void semaphoreRelease(long delay){
+    runDelayed(new Runnable() {
+      @Override
+      public void run() {
+        cameraSemaphore.release();
+      }
+    },delay);
+  }
+
+  //Split String to characters to send to ble in 500ms intervals
+  private void sendCameraDetectionToBle(String detectString){
+    char[] detectChars = detectString.toCharArray();
+    for (int i = 0; i < detectChars.length; i++){
+      final char charToPrint = detectChars[i];
+      runDelayed(new Runnable() {
+        @Override
+        public void run() {
+          int [] a = BrailleParser.parse(charToPrint);
+          ble.writeToGatt(BLE.RIGHT_GATT,BrailleParser.parse(charToPrint));
+        }
+      },500*i);
+    }
+
+    //Sending 0 to Right BLE
+    runDelayed(new Runnable() {
+      @Override
+      public void run() {
+        ble.writeToGatt(BLE.RIGHT_GATT,zeroArray);
+      }
+    },(detectChars.length+1) * 500);
+
+    //Semaphore release with delay
+    semaphoreRelease(detectChars.length * 500 + 2000);
   }
 
   @Override
