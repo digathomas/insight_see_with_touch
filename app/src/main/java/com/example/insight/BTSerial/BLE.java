@@ -101,19 +101,35 @@ public class BLE {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
             if (status == BluetoothGatt.GATT_SUCCESS){
-                if (gatt == leftGATT){
+                if (gatt == leftGATT) {
                     leftService = leftGATT.getService(SERVICE_UUID);
-                    if (leftService != null)
+                    if (leftService != null){
                         leftWriteCharacteristic = leftService.getCharacteristic(CHARCTERISTIC_UUID);
+                        writeToGatt(LEFT_GATT, new int[10], 64);}
                 }
                 else{
                     rightService = rightGATT.getService(SERVICE_UUID);
-                    if (rightService != null)
+                    if (rightService != null){
                         rightWriteCharacteristic = rightService.getCharacteristic(CHARCTERISTIC_UUID);
+                        writeToGatt(RIGHT_GATT, new int[10], 64);}
                 }
             }
         }
     };
+
+    //write 20 int values with conversion to gatts with header
+    public void writeToGatt(int[]value, int header){
+        if (value.length == 20) {
+            int leftHandValues[] = Arrays.copyOfRange(value,0,10);
+            int rightHandValues[] = Arrays.copyOfRange(value,10,20);
+
+            writeToGatt(LEFT_GATT,leftHandValues, header);
+            writeToGatt(RIGHT_GATT,rightHandValues, header);
+        }
+        else{
+            Log.w("WriteToGatt","Unable to write to Gatt with int array not of size 20");
+        }
+    }
 
     //write 20 int values with conversion to gatts
     public void writeToGatt(int[]value){
@@ -129,10 +145,31 @@ public class BLE {
         }
     }
 
+    //write to gatt with header
+    public void writeToGatt(int gattLR, int[] value, int header){
+        if (value.length == 10) {
+            writeToGatt(gattLR,intToByte(header, value));
+        }
+        else if (value.length == 20){
+            if(gattLR == LEFT_GATT){
+                int leftHandValues[] = Arrays.copyOfRange(value,0,10);
+                writeToGatt(gattLR,leftHandValues);
+            }
+            else{
+                int rightHandValues[] = Arrays.copyOfRange(value,10,20);
+                writeToGatt(gattLR,rightHandValues);
+            }
+        }
+        else{
+            Log.w("WriteToGatt","Unable to write to Gatt with int array not of size 10");
+        }
+    }
+
     //write 10 int values with conversion to L or R gatt
     public void writeToGatt(int gattLR, int[] value){
         if (value.length == 10) {
-            writeToGatt(gattLR,intToByte(value));
+            int header = 127;
+            writeToGatt(gattLR,intToByte(header, value));
         }
         else if (value.length == 20){
             if(gattLR == LEFT_GATT){
@@ -183,10 +220,10 @@ public class BLE {
 
     //Conversion from int array to byte array with
     //correct position of bytes. Follow notes at bottom of BLE.java
-    public byte[] intToByte(int[] arr){
+    public byte[] intToByte(int header, int[] arr){
         byte[] byteArr =  new byte[11];
         if (arr.length == 10) {
-            byteArr[0] = 127;
+            byteArr[0] = (byte)header;
             byteArr[1] = inBoundValue(arr[4]);
             byteArr[2] = inBoundValue(arr[5]);
             byteArr[3] = inBoundValue(arr[2]);
