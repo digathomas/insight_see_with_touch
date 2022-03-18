@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
             // go into user mode
             userModeState = true;
             invalidateOptionsMenu();
-            devLayout.setVisibility(View.GONE);
+            devLayout.setVisibility(View.INVISIBLE);
             userLayout.setVisibility(View.VISIBLE);
         }
     }
