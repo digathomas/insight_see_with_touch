@@ -7,6 +7,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.PowerManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
@@ -16,19 +17,22 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-
+import android.widget.Button;
+import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
 import lidar.LidarActivity;
 import lidar.LidarModule.LidarHelper;
+import lidar.LidarModule.LidarRenderer;
 
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -59,11 +63,43 @@ public class MainActivity extends AppCompatActivity {
     public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
 
+    //BLE
+    private static BLE ble;
+
+    //Wake Lock
+    private static PowerManager powerManager;
+    private static PowerManager.WakeLock wakeLock;
+
+    //lidar to ble semaphore
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Checking for permissions
+        PackageManager pm = this.getPackageManager();
+        int hasPerm2 = pm.checkPermission(
+                Manifest.permission.WAKE_LOCK,
+                this.getPackageName());
+        if (hasPerm2 == PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Has permission: wake");
+        }
+        else System.out.println("Doesn't have permission: wake");
+
+
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        powerManager = getApplicationContext().getSystemService(PowerManager.class);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Insight::wakeLockTag");
+
+        if (powerManager.isIgnoringBatteryOptimizations("insight"))
+            System.out.println("Is ignoring");
+        else System.out.println("Is not ignoring");
+
+        //BLE
+        if (ble == null){
+            ble = new BLE(this);
+        }
 
         //Camera Permissions
         if(!hasPermission()){
@@ -178,6 +214,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public synchronized void onResume() {
         super.onResume();
+        if (ble == null){
+            ble = new BLE(this);
+        }
         if (detectorActivity == null) {
             detectorThread = new Thread(() -> {
                 detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
@@ -199,6 +238,21 @@ public class MainActivity extends AppCompatActivity {
     public synchronized void onPause() {
         super.onPause();
         pauseHandlerThread();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try{
+            wakeLock.release();
+        } catch (Exception ignored){}
+        if (ble != null){
+            try{
+                ble.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

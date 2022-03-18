@@ -20,7 +20,6 @@ import android.Manifest;
 import android.app.Activity;
 import androidx.fragment.app.Fragment;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -32,21 +31,20 @@ import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.*;
 import android.util.Size;
-import android.view.Surface;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.WindowManager;
 import android.widget.*;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
+import com.example.insight.BTSerial.BLE;
+import com.example.insight.MainActivity;
 import com.example.insight.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import detection.env.ImageUtils;
+import org.tensorflow.lite.examples.detection.tflite.Detector;
 
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.Semaphore;
 
 public abstract class CameraActivity
     implements OnImageAvailableListener,
@@ -84,11 +82,15 @@ public abstract class CameraActivity
   protected Activity activity;
   protected Context context;
   protected FragmentManager fragmentManager;
+  protected Semaphore cameraSemaphore;
+  protected BLE ble;
 
   public CameraActivity(Context context, Activity activity, FragmentManager fragmentManager){
     this.context = context;
     this.activity = activity;
     this.fragmentManager = fragmentManager;
+    this.ble = MainActivity.getBle();
+    cameraSemaphore = new Semaphore(0);
 
     setFragment();
     initializeHandlers();
@@ -227,6 +229,12 @@ public abstract class CameraActivity
     }
   }
 
+  protected synchronized void runDelayed(final Runnable r, long milliseconds) {
+    if (handler != null) {
+      handler.postDelayed(r,milliseconds);
+    }
+  }
+
   private String chooseCamera() {
     final CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
     try {
@@ -342,6 +350,8 @@ public abstract class CameraActivity
     }
   }
 
+
+
   protected void showDetectedObjects(String text){
     detectedTextView.setText(text);
   }
@@ -369,4 +379,8 @@ public abstract class CameraActivity
   protected abstract void setNumThreads(int numThreads);
 
   protected abstract void setUseNNAPI(boolean isChecked);
+
+  protected abstract void sendToPriotittyModule(List<Detector.Recognition> recognitionList);
+
+  protected abstract Detector.Recognition recognitionClone(Detector.Recognition oldRec);
 }

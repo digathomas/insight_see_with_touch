@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Insight</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZGlnYXRob21hcyIsImEiOiJja3lzZW94cHExMzZqMzFvN3Y2bzlwdjQ1In0.Xga0JlLhOAIHUh8D3Og7vw</string>
     <string name="tfe_od_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
     <string name="instructions">Tap "SETUP" for instructions on the hardware setup\nTap "USAGE" for instructions on the operation of the system\nTap "ENCODING" for a table that maps braille code to real world objects</string>
     <string name="instructions1">Setup:\nConnect the Android device to the bluetooth haptic gloves. Wear both haptic gloves and open the Insight Android application. The gloves haptics will all vibrate 10 times to communicate successful start-up.</string>
