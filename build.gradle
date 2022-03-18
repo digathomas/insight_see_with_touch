@@ -20,7 +20,7 @@ allprojects {
         maven { url 'https://jitpack.io' }
         maven {
             name 'ossrh-snapshot'
-            url 'http://oss.sonatype.org/content/repositories/snapshots'
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
         }
         maven {
             url 'https://api.mapbox.com/downloads/v2/releases/maven'
