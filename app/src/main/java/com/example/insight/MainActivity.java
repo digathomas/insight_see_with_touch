@@ -24,10 +24,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import com.example.insight.BTSerial.BLE;
 import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
-import lidar.LidarActivity;
 import lidar.LidarModule.LidarHelper;
 import lidar.LidarModule.LidarRenderer;
 
@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
 
     private Intent intent;
-    private LidarActivity lidarActivity;
     protected LidarHelper lidarHelper;
     private DetectorActivity detectorActivity;
 
@@ -131,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
                 lidarHelper.connectUsb();
             }
         }
-        lidarActivity = new LidarActivity(this);
 
         // set up voice instructions
         final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.song1)};
@@ -445,5 +443,13 @@ public class MainActivity extends AppCompatActivity {
         // TODO: turn on camera feed
         objectDetectionUiState = true;
         item.setTitle("Cam Feed: ON");
+    }
+
+    public static BLE getBle() {
+        return ble;
+    }
+
+    public static PowerManager.WakeLock getWakeLock() {
+        return wakeLock;
     }
 }
