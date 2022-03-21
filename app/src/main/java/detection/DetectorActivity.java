@@ -83,10 +83,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
   public static Detector.Recognition sharedRecognition = null;
+  private int index = 0;
+  private char[] alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
 
   public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
     super(context, activity, fragmentManager);
     semaphoreRelease(2000);
+    runDelayed(new Runnable() {
+      @Override
+      public void run() {
+        index = index % 25;
+        ble.writeToGatt(BLE.RIGHT_GATT,BrailleParser.parse(alphabet[index++]));
+        runDelayed(this,2000);
+      }
+    },500);
   }
 
 
@@ -287,7 +297,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               highestPriority = result;
             }
           }
-          sendCameraDetectionToBle(highestPriority.getTitle());
+          //sendCameraDetectionToBle(highestPriority.getTitle());
         }
 
       }
