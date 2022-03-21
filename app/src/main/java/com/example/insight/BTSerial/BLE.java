@@ -153,11 +153,11 @@ public class BLE {
         else if (value.length == 20){
             if(gattLR == LEFT_GATT){
                 int leftHandValues[] = Arrays.copyOfRange(value,0,10);
-                writeToGatt(gattLR,leftHandValues);
+                writeToGatt(gattLR,leftHandValues, header);
             }
             else{
                 int rightHandValues[] = Arrays.copyOfRange(value,10,20);
-                writeToGatt(gattLR,rightHandValues);
+                writeToGatt(gattLR,rightHandValues, header);
             }
         }
         else{
