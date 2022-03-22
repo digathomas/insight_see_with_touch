@@ -23,5 +23,9 @@
         android:id="@+id/camera_state"
         android:title="Cam Feed: ON"
         />
+    <item
+        android:id="@+id/obj_det_model"
+        android:title="Model: SELF-TRAINED"
+        />
 
 </menu>
