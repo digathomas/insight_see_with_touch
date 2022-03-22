@@ -23,6 +23,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Style;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
@@ -40,6 +41,7 @@ import detection.tracking.MultiBoxTracker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -86,7 +88,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
     super(context, activity, fragmentManager);
-    semaphoreRelease(2000);
   }
 
   public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager, Boolean mode) {
@@ -233,8 +234,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
             computingDetection = false;
 
-            if (cameraSemaphore.tryAcquire()) {
-              sendToPriotittyModule(mappedRecognitions);
+            if (!mappedRecognitions.isEmpty()) {
+              if (cameraSemaphore.tryAcquire()) {
+                sendToPriotittyModule(mappedRecognitions);
+              }
             }
           }
         });
@@ -322,10 +325,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       runDelayed(new Runnable() {
         @Override
         public void run() {
-          int [] a = BrailleParser.parse(charToPrint);
-          ble.writeToGatt(BLE.RIGHT_GATT,BrailleParser.parse(charToPrint));
+          int [] a = BrailleParser.parse(Character.toLowerCase(charToPrint));
+          ble.writeToGatt(BLE.RIGHT_GATT,Arrays.copyOfRange(a,10,20),111);
         }
-      },500*i);
+      },2000*i);
     }
 
     //Sending 0 to Right BLE
@@ -334,10 +337,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       public void run() {
         ble.writeToGatt(BLE.RIGHT_GATT,zeroArray);
       }
-    },(detectChars.length+1) * 500);
+    },(detectChars.length+1) * 2000);
 
     //Semaphore release with delay
-    semaphoreRelease(detectChars.length * 500 + 2000);
+    semaphoreRelease(detectChars.length * 2000 + 2000);
   }
 
   @Override
