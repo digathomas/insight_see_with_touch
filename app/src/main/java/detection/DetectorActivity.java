@@ -27,9 +27,9 @@ import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 import androidx.fragment.app.FragmentManager;
-import com.example.insight.BTSerial.BLE;
-import com.example.insight.BTSerial.BrailleParser;
+import com.example.insight.MainActivity;
 import com.example.insight.R;
+import detection.CameraActivity;
 import detection.customview.OverlayView;
 import detection.customview.OverlayView.DrawCallback;
 import detection.env.BorderedText;
@@ -41,7 +41,6 @@ import detection.tracking.MultiBoxTracker;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * An activity that uses a TensorFlowMultiBoxDetector and ObjectTracker to detect and then track
@@ -52,8 +51,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   // Configuration values for the prepackaged SSD model.
   private static final int TF_OD_API_INPUT_SIZE = 300;
   private static final boolean TF_OD_API_IS_QUANTIZED = true;
-  private static String TF_OD_API_MODEL_FILE = "model1.tflite";
-  private static String TF_OD_API_LABELS_FILE = "labelmap1.txt";
+  private static final String TF_OD_API_MODEL_FILE = "detect.tflite";
+  private static final String TF_OD_API_LABELS_FILE = "labelmap.txt";
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
   private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
@@ -61,7 +60,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
   private static final boolean SAVE_PREVIEW_BITMAP = false;
   private static final float TEXT_SIZE_DIP = 10;
-  private final byte[] zeroArray = {127,0,0,0,0,0,0,0,0,0,0};
   OverlayView trackingOverlay;
   private Integer sensorOrientation;
 
@@ -82,24 +80,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private MultiBoxTracker tracker;
 
   private BorderedText borderedText;
-  public static Detector.Recognition sharedRecognition = null;
 
   public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
     super(context, activity, fragmentManager);
-    semaphoreRelease(2000);
   }
 
-  public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager, Boolean mode) {
-    super(context, activity, fragmentManager);
-    semaphoreRelease(2000);
-    if (mode) {
-      TF_OD_API_MODEL_FILE = "model1.tflite";
-      TF_OD_API_LABELS_FILE = "labelmap1.txt";
-    } else {
-      TF_OD_API_MODEL_FILE = "model.tflite";
-      TF_OD_API_LABELS_FILE = "labelmap.txt";
-    }
-  }
 
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -159,7 +144,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
 
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
-    detector.setNumThreads(1);
+    detector.setNumThreads(4);
   }
 
   @Override
@@ -184,12 +169,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     // For examining the actual TF input.
     if (SAVE_PREVIEW_BITMAP) {
       ImageUtils.saveBitmap(croppedBitmap);
-    }
-
-    try {
-      TimeUnit.MILLISECONDS.sleep(100);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
     }
 
     runInBackground(
@@ -232,10 +211,34 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
+            activity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                String print = "";
+                for (Detector.Recognition result : mappedRecognitions){
+                    print += result.getTitle() + ": " +
+                            result.getLocation().height() + "," +
+                            result.getLocation().width() + "\n";
+                }
 
-            if (cameraSemaphore.tryAcquire()) {
-              sendToPriotittyModule(mappedRecognitions);
-            }
+                System.out.println(print + "-------------------");
+              }
+            });
+//            activity.runOnUiThread(
+//                new Runnable() {
+//                  @Override
+//                  public void run() {
+//                    String text = "";
+//                    for (final Detector.Recognition result : mappedRecognitions){
+//                        text += "Detected: " + result.getTitle() + "\n";
+//                    }
+//                    System.out.println(text);
+//                    showDetectedObjects(text);
+//                    showFrameInfo(previewWidth + "x" + previewHeight);
+//                    showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
+//                    showInference(lastProcessingTimeMs + "ms");
+//                  }
+//                });
           }
         });
   }
@@ -275,73 +278,5 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   @Override
   protected void setNumThreads(final int numThreads) {
     runInBackground(() -> detector.setNumThreads(numThreads));
-  }
-
-
-  //Priority done by percentage area the object is taking
-  //up of the camera view. highest priority will be sent
-  //to ble
-  @Override
-  protected void sendToPriotittyModule(List<Detector.Recognition> recognitionList){
-    runInBackground(new Runnable() {
-      @Override
-      public void run() {
-        if (!recognitionList.isEmpty()) {
-          Detector.Recognition highestPriority = null;
-          float highestArea = -1;
-
-          //get the biggest area
-          for (Detector.Recognition result : recognitionList) {
-            float area = result.getLocation().height() * result.getLocation().width();
-            if (area > highestArea) {
-              highestArea = area;
-              highestPriority = result;
-            }
-          }
-          sendCameraDetectionToBle(highestPriority.getTitle());
-        }
-
-      }
-    });
-  }
-
-  protected void semaphoreRelease(long delay){
-    runDelayed(new Runnable() {
-      @Override
-      public void run() {
-        cameraSemaphore.release();
-      }
-    },delay);
-  }
-
-  //Split String to characters to send to ble in 500ms intervals
-  private void sendCameraDetectionToBle(String detectString){
-    char[] detectChars = detectString.toCharArray();
-    for (int i = 0; i < detectChars.length; i++){
-      final char charToPrint = detectChars[i];
-      runDelayed(new Runnable() {
-        @Override
-        public void run() {
-          int [] a = BrailleParser.parse(charToPrint);
-          ble.writeToGatt(BLE.RIGHT_GATT,BrailleParser.parse(charToPrint));
-        }
-      },500*i);
-    }
-
-    //Sending 0 to Right BLE
-    runDelayed(new Runnable() {
-      @Override
-      public void run() {
-        ble.writeToGatt(BLE.RIGHT_GATT,zeroArray);
-      }
-    },(detectChars.length+1) * 500);
-
-    //Semaphore release with delay
-    semaphoreRelease(detectChars.length * 500 + 2000);
-  }
-
-  @Override
-  protected Detector.Recognition recognitionClone(Detector.Recognition oldRec){
-    return new Detector.Recognition(oldRec.getId(),oldRec.getTitle(),oldRec.getConfidence(),oldRec.getLocation());
   }
 }

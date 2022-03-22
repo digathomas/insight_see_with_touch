@@ -1,25 +1,4 @@
 <resources>
     <string name="app_name">Insight</string>
-    <string name="mapbox_access_token">pk.eyJ1IjoiZGlnYXRob21hcyIsImEiOiJja3lzZW94cHExMzZqMzFvN3Y2bzlwdjQ1In0.Xga0JlLhOAIHUh8D3Og7vw</string>
     <string name="tfe_od_camera_error" translation_description="Error regarding camera support[CHAR_LIMIT=40]">This device doesn\'t support Camera2 API.</string>
-    <string name="instructions">Press SETUP for instructions on the hardware setup\n
-        Press USAGE for instructions on the operation of the system.\n
-        Press ENCODING for the mapping of braille letters to real world objects.\n
-    </string>
-    <string name="instructions1">Setup:\n
-        1. Plug the batteries into the wrist boards of each glove.\n
-        2. Turn on bluetooth on your Android device.\n
-        3. Clear the Insight app from the cache.\n
-        4. Run the Insight app.\n
-        5. The gloves should vibrate in a wave pattern to indicate successful bluetooth pairing.\n
-    </string>
-    <string name="instructions2">Usage:\n
-        1. Left hand vibrations represent objects at a proximity to the user. The lower field of view is mapped to vibrators placed on the fingers. The higher field of view is mapped to vibrators placed on the knuckles. The right-most side of the field of view is mapped to the thumb. The left-most side of the field of view is mapped to the pinky.\n
-        2. Right hand vibrations on the 3 middle-most fingers represent edge cases at a proximity to the user. These objects are represented through braille letters corresponding to an object in the mapping tab.\n
-        3. Right hand vibrations on the pinky-thumb fingers represent directions to a destination. These fingers represent respectively turning right and turning left.\n
-    </string>
-    <string name="instructions3">Mapping:\n
-        D: door\n
-        S: stairs\n
-    </string>
 </resources>
