@@ -132,9 +132,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // set up voice instructions
-        final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.song1)};
-        final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.song2)};
-        final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.song3)};
+        final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.Setup)};
+        final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.Usage)};
+        final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.Mapping)};
         app_logo.setOnClickListener(v -> {
             try {
                 if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
