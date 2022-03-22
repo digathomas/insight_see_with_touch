@@ -4,11 +4,6 @@
     package="com.example.insight">
 
     <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature android:name = "android.hardware.usb.host" />
     <uses-feature android:name="android.hardware.camera" />
@@ -16,18 +11,23 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/insight_logo"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/insight_logo"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Insight">
+        <activity
+            android:name="detection.DetectorActivity">
+        </activity>
+        <activity
+            android:name="lidar.LidarActivity">
+        </activity>
         <activity
             android:name=".GpsActivity">
         </activity>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
-            android:label="Insight: See with Touch">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

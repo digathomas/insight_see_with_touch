@@ -5,17 +5,14 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.media.MediaPlayer;
 import android.os.Build;
-import android.os.PowerManager;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,97 +21,49 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import com.example.insight.BTSerial.BLE;
 import detection.CameraActivity;
 import detection.DetectorActivity;
 import detection.customview.OverlayView;
+import lidar.LidarActivity;
 import lidar.LidarModule.LidarHelper;
 import lidar.LidarModule.LidarRenderer;
 
 import java.io.IOException;
-import java.util.concurrent.Semaphore;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
 
     private Intent intent;
+    private LidarActivity lidarActivity;
     protected LidarHelper lidarHelper;
     private DetectorActivity detectorActivity;
 
     private Thread detectorThread;
     private static OverlayView trackingOverlay ;
-    private static LinearLayout userLayout;
-    private static LinearLayout devLayout;
     private static FrameLayout container;
     private static ImageView bitmapImageView;
-    private static ImageView app_logo;
-    private static Button button1;
-    private static Button button2;
-    private static Button button3;
-    private static TextView instructionTextView;
 
     // menu variables to keep track of what's on and off
     // assuming everything starts at "on" state
-    private static Boolean userModeState = true;
     private static Boolean lidarState = true;
     private static Boolean objectDetectionState = true;
     public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
-    private static Boolean objectDetectionModeState = true;
-
-    //BLE
-    private static BLE ble;
-
-    //Wake Lock
-    private static PowerManager powerManager;
-    private static PowerManager.WakeLock wakeLock;
-
-    //lidar to ble semaphore
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Checking for permissions
-        PackageManager pm = this.getPackageManager();
-        int hasPerm2 = pm.checkPermission(
-                Manifest.permission.WAKE_LOCK,
-                this.getPackageName());
-        if (hasPerm2 == PackageManager.PERMISSION_GRANTED) {
-            System.out.println("Has permission: wake");
-        }
-        else System.out.println("Doesn't have permission: wake");
-
-
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        powerManager = getApplicationContext().getSystemService(PowerManager.class);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Insight::wakeLockTag");
-
-        if (powerManager.isIgnoringBatteryOptimizations("insight"))
-            System.out.println("Is ignoring");
-        else System.out.println("Is not ignoring");
-
-        //BLE
-        if (ble == null){
-            ble = new BLE(this);
-        }
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         //Camera Permissions
         if(!hasPermission()){
             requestPermission();
         }
 
-        userLayout = findViewById(R.id.userLayout);
-        devLayout = findViewById(R.id.devLayout);
         container = findViewById(R.id.container);
         bitmapImageView = findViewById(R.id.bitmapImageView);
-        app_logo = findViewById(R.id.app_logo);
-        button1 = findViewById(R.id.button1);
-        button2 = findViewById(R.id.button2);
-        button3 = findViewById(R.id.button3);
-        instructionTextView = findViewById(R.id.instructionTextView );
 
         //Lidar Helper
         try {
@@ -131,91 +80,17 @@ public class MainActivity extends AppCompatActivity {
                 lidarHelper.connectUsb();
             }
         }
-
-        // set up voice instructions
-        final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.setup)};
-        final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.usage)};
-        final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.mapping)};
-        app_logo.setOnClickListener(v -> {
-            try {
-                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
-                    mp1[0].stop();
-                    mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
-                    mp2[0].stop();
-                    mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
-                    mp3[0].stop();
-                    mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
-                }
-                instructionTextView.setText(R.string.instructions);
-            } catch(Exception e) { e.printStackTrace(); }
-        });
-        button1.setOnClickListener(v -> {
-            try {
-                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
-                    mp1[0].stop();
-                    mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
-                    mp2[0].stop();
-                    mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
-                    mp3[0].stop();
-                    mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
-                }
-                mp1[0].start();
-                instructionTextView.setText(R.string.instructions1);
-            } catch(Exception e) { e.printStackTrace(); }
-        });
-        button2.setOnClickListener(v -> {
-            try {
-                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
-                    mp1[0].stop();
-                    mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
-                    mp2[0].stop();
-                    mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
-                    mp3[0].stop();
-                    mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
-                }
-                mp2[0].start();
-                instructionTextView.setText(R.string.instructions2);
-            } catch(Exception e) { e.printStackTrace(); }
-        });
-        button3.setOnClickListener(v -> {
-            try {
-                if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
-                    mp1[0].stop();
-                    mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
-                    mp2[0].stop();
-                    mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
-                    mp3[0].stop();
-                    mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
-                }
-                mp3[0].start();
-                instructionTextView.setText(R.string.instructions3);
-            } catch(Exception e) { e.printStackTrace(); }
-        });
+        lidarActivity = new LidarActivity(this);
     }
 
     @Override
     public synchronized void onStart() {
-        super.onStart();
+    super.onStart();
     }
 
     @Override
     public synchronized void onResume() {
         super.onResume();
-        if (ble == null){
-            ble = new BLE(this);
-        }
         if (detectorActivity == null) {
             detectorThread = new Thread(() -> {
                 detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
@@ -240,22 +115,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        try{
-            wakeLock.release();
-        } catch (Exception ignored){}
-        if (ble != null){
-            try{
-                ble.close();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
+    public void onRequestPermissionsResult(
+            final int requestCode, final String[] permissions, final int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
             if (!allPermissionsGranted(grantResults)) {
@@ -267,48 +128,85 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_list, menu);
-        MenuItem i = menu.findItem(R.id.user_mode_state);
-        if (userModeState) {
-            i.setTitle("USER MODE");
-        } else {
-            i.setTitle("DEV MODE");
-        }
-        MenuItem[] item = {menu.findItem(R.id.lidar_state), menu.findItem(R.id.bitmap_state), menu.findItem(R.id.object_detection_state), menu.findItem(R.id.camera_state), menu.findItem(R.id.obj_det_model)};
-        for (MenuItem it : item) {
-            it.setVisible(!userModeState);
-        }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.user_mode_state:
-                switchUserModeState(item);
-                break;
             case R.id.lidar_state:
-                switchLidarState(item);
-                break;
+                try {
+                    if(lidarState){
+                        // turn off lidar sensor
+                        lidarHelper.sendStop();
+                        lidarState = false;
+                        item.setTitle("Lidar: OFF");
+                        return true;
+                    }
+                    // turn on lidar sensor
+                    lidarHelper.sendStart3D();
+                    lidarState = true;
+                    item.setTitle("Lidar: ON");
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    break;
+                }
             case R.id.bitmap_state:
-                switchLidarUiState(item);
-                break;
+                if(bitmapImageView.getVisibility() == View.VISIBLE){
+                    bitmapImageView.setVisibility(View.INVISIBLE);
+                } else {
+                    bitmapImageView.setVisibility(View.VISIBLE);
+                }
+                if(lidarUiState) {
+                    // turn off bitmap
+                    lidarUiState = false; // LidarRenderer runnable checks for this variable state
+                    item.setTitle("Bitmap: OFF");
+                    return true;
+                }
+                // turn on bitmap
+                lidarUiState = true;
+                item.setTitle("Bitmap: ON");
+                return true;
             case R.id.object_detection_state:
-                switchObjectDetectionState(item);
-                break;
+                if (objectDetectionState) {
+                    // turn off object detection
+                    pauseHandlerThread();
+                    objectDetectionState = false;
+                    item.setTitle("Obj Det: OFF");
+                    return true;
+                }
+                // turn on object detection
+                resumeHandlerThread();
+                objectDetectionState = true;
+                item.setTitle("Obj Det: ON");
+                return true;
             case R.id.camera_state:
-                switchObjectDetectionUiState(item);
-                break;
-            case R.id.obj_det_model:
-                switchObjectDetectionMode(item);
-            default:
-                return false;
+                if(container.getVisibility() == View.VISIBLE){
+                    container.setVisibility(View.GONE);
+                } else {
+                    container.setVisibility(View.VISIBLE);
+                }
+                if(objectDetectionUiState){
+                    // turn off camera feed
+                    // TODO: turn off camera feed
+                    objectDetectionUiState = false;
+                    item.setTitle("Cam Feed: OFF");
+                    return true;
+                }
+                // turn on camera feed
+                // TODO: turn on camera feed
+                objectDetectionUiState = true;
+                item.setTitle("Cam Feed: ON");
+                return true;
         }
-        return true;
+        return false;
     }
 
     private void resumeHandlerThread(){
         detectorThread = new Thread(() -> {
-            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager(), objectDetectionModeState);
+            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
         });
         detectorThread.start();
     }
@@ -364,115 +262,4 @@ public class MainActivity extends AppCompatActivity {
         return bitmapImageView;
     }
 
-    private void switchUserModeState(MenuItem item) {
-        if(userModeState) {
-            // go into developer mode
-            userModeState = false;
-            invalidateOptionsMenu();
-            userLayout.setVisibility(View.GONE);
-            devLayout.setVisibility(View.VISIBLE);
-        } else {
-            // go into user mode
-            userModeState = true;
-            invalidateOptionsMenu();
-            devLayout.setVisibility(View.INVISIBLE);
-            userLayout.setVisibility(View.VISIBLE);
-        }
-    }
-
-    private void switchLidarState(MenuItem item) {
-        try {
-            if(lidarState){
-                // turn off lidar sensor
-                lidarHelper.sendStop();
-                lidarState = false;
-                item.setTitle("Lidar: OFF");
-                return;
-            }
-            // turn on lidar sensor
-            lidarHelper.sendStart3D();
-            lidarState = true;
-            item.setTitle("Lidar: ON");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void switchLidarUiState(MenuItem item) {
-        if(bitmapImageView.getVisibility() == View.VISIBLE){
-            bitmapImageView.setVisibility(View.GONE);
-        } else {
-            bitmapImageView.setVisibility(View.VISIBLE);
-        }
-        if(lidarUiState) {
-            // turn off bitmap
-            lidarUiState = false; // LidarRenderer runnable checks for this variable state
-            item.setTitle("Bitmap: OFF");
-            return;
-        }
-        // turn on bitmap
-        lidarUiState = true;
-        item.setTitle("Bitmap: ON");
-    }
-
-    private void switchObjectDetectionState(MenuItem item) {
-        if (objectDetectionState) {
-            // turn off object detection
-            pauseHandlerThread();
-            objectDetectionState = false;
-            item.setTitle("Obj Det: OFF");
-            return;
-        }
-        // turn on object detection
-        resumeHandlerThread();
-        objectDetectionState = true;
-        item.setTitle("Obj Det: ON");
-    }
-
-    private void switchObjectDetectionUiState(MenuItem item) {
-        if(container.getVisibility() == View.VISIBLE){
-            container.setVisibility(View.GONE);
-        } else {
-            container.setVisibility(View.VISIBLE);
-        }
-        if(objectDetectionUiState){
-            // turn off camera feed
-            // TODO: turn off camera feed
-            objectDetectionUiState = false;
-            item.setTitle("Cam Feed: OFF");
-            return;
-        }
-        // turn on camera feed
-        // TODO: turn on camera feed
-        objectDetectionUiState = true;
-        item.setTitle("Cam Feed: ON");
-    }
-
-    private void switchObjectDetectionMode(MenuItem item) {
-        if(objectDetectionModeState){
-            objectDetectionModeState = false;
-            item.setTitle("Model: PRE-TRAINED");
-            // turn model into google pre-trained model
-            // turn off object detection
-            pauseHandlerThread();
-            // turn on object detection
-            resumeHandlerThread();
-            return;
-        }
-        objectDetectionModeState = true;
-        item.setTitle("Model: SELF-TRAINED");
-        // turn model into self-trained model (for stairs and doors)
-        // turn off object detection
-        pauseHandlerThread();
-        // turn on object detection
-        resumeHandlerThread();
-    }
-
-    public static BLE getBle() {
-        return ble;
-    }
-
-    public static PowerManager.WakeLock getWakeLock() {
-        return wakeLock;
-    }
 }
