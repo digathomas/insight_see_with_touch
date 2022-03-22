@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private static Boolean objectDetectionState = true;
     public static Boolean lidarUiState = true;
     private static Boolean objectDetectionUiState = true;
+    private static Boolean objectDetectionModeState = true;
 
     //BLE
     private static BLE ble;
@@ -132,21 +133,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // set up voice instructions
-        final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.song1)};
-        final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.song2)};
-        final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.song3)};
+        final MediaPlayer[] mp1 = {MediaPlayer.create(this, R.raw.setup)};
+        final MediaPlayer[] mp2 = {MediaPlayer.create(this, R.raw.usage)};
+        final MediaPlayer[] mp3 = {MediaPlayer.create(this, R.raw.mapping)};
         app_logo.setOnClickListener(v -> {
             try {
                 if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
                     mp1[0].stop();
                     mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
                     mp2[0].stop();
                     mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
                     mp3[0].stop();
                     mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
                 }
                 instructionTextView.setText(R.string.instructions);
             } catch(Exception e) { e.printStackTrace(); }
@@ -156,13 +157,13 @@ public class MainActivity extends AppCompatActivity {
                 if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
                     mp1[0].stop();
                     mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
                     mp2[0].stop();
                     mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
                     mp3[0].stop();
                     mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
                 }
                 mp1[0].start();
                 instructionTextView.setText(R.string.instructions1);
@@ -173,13 +174,13 @@ public class MainActivity extends AppCompatActivity {
                 if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
                     mp1[0].stop();
                     mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
                     mp2[0].stop();
                     mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
                     mp3[0].stop();
                     mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
                 }
                 mp2[0].start();
                 instructionTextView.setText(R.string.instructions2);
@@ -190,13 +191,13 @@ public class MainActivity extends AppCompatActivity {
                 if (mp1[0].isPlaying() || mp2[0].isPlaying() || mp3[0].isPlaying()) {
                     mp1[0].stop();
                     mp1[0].release();
-                    mp1[0] = MediaPlayer.create(this, R.raw.song1);
+                    mp1[0] = MediaPlayer.create(this, R.raw.setup);
                     mp2[0].stop();
                     mp2[0].release();
-                    mp2[0] = MediaPlayer.create(this, R.raw.song2);
+                    mp2[0] = MediaPlayer.create(this, R.raw.usage);
                     mp3[0].stop();
                     mp3[0].release();
-                    mp3[0] = MediaPlayer.create(this, R.raw.song3);
+                    mp3[0] = MediaPlayer.create(this, R.raw.mapping);
                 }
                 mp3[0].start();
                 instructionTextView.setText(R.string.instructions3);
@@ -272,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             i.setTitle("DEV MODE");
         }
-        MenuItem[] item = {menu.findItem(R.id.lidar_state), menu.findItem(R.id.bitmap_state), menu.findItem(R.id.object_detection_state), menu.findItem(R.id.camera_state)};
+        MenuItem[] item = {menu.findItem(R.id.lidar_state), menu.findItem(R.id.bitmap_state), menu.findItem(R.id.object_detection_state), menu.findItem(R.id.camera_state), menu.findItem(R.id.obj_det_model)};
         for (MenuItem it : item) {
             it.setVisible(!userModeState);
         }
@@ -297,6 +298,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.camera_state:
                 switchObjectDetectionUiState(item);
                 break;
+            case R.id.obj_det_model:
+                switchObjectDetectionMode(item);
             default:
                 return false;
         }
@@ -305,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void resumeHandlerThread(){
         detectorThread = new Thread(() -> {
-            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager());
+            detectorActivity = new DetectorActivity(MainActivity.this, this, getSupportFragmentManager(), objectDetectionModeState);
         });
         detectorThread.start();
     }
@@ -443,6 +446,26 @@ public class MainActivity extends AppCompatActivity {
         // TODO: turn on camera feed
         objectDetectionUiState = true;
         item.setTitle("Cam Feed: ON");
+    }
+
+    private void switchObjectDetectionMode(MenuItem item) {
+        if(objectDetectionModeState){
+            objectDetectionModeState = false;
+            item.setTitle("Model: PRE-TRAINED");
+            // turn model into google pre-trained model
+            // turn off object detection
+            pauseHandlerThread();
+            // turn on object detection
+            resumeHandlerThread();
+            return;
+        }
+        objectDetectionModeState = true;
+        item.setTitle("Model: SELF-TRAINED");
+        // turn model into self-trained model (for stairs and doors)
+        // turn off object detection
+        pauseHandlerThread();
+        // turn on object detection
+        resumeHandlerThread();
     }
 
     public static BLE getBle() {
