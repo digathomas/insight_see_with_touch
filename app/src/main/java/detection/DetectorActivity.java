@@ -23,6 +23,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Style;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
@@ -40,6 +41,7 @@ import detection.tracking.MultiBoxTracker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -52,7 +54,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   // Configuration values for the prepackaged SSD model.
   private static final int TF_OD_API_INPUT_SIZE = 300;
   private static final boolean TF_OD_API_IS_QUANTIZED = true;
-  private static final String TF_OD_API_MODEL_FILE = "model1.tflite";
+  private static final String TF_OD_API_MODEL_FILE = "model.tflite";
   private static final String TF_OD_API_LABELS_FILE = "labelmap1.txt";
   private static final DetectorMode MODE = DetectorMode.TF_OD_API;
   // Minimum detection confidence to track a detection.
@@ -83,20 +85,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
   public static Detector.Recognition sharedRecognition = null;
-  private int index = 0;
-  private char[] alphabet = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
 
   public DetectorActivity(Context context, Activity activity, FragmentManager fragmentManager) {
     super(context, activity, fragmentManager);
-    semaphoreRelease(2000);
-    runDelayed(new Runnable() {
-      @Override
-      public void run() {
-        index = index % 25;
-        ble.writeToGatt(BLE.RIGHT_GATT,BrailleParser.parse(alphabet[index++]));
-        runDelayed(this,2000);
-      }
-    },500);
   }
 
 
@@ -232,8 +223,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
             computingDetection = false;
 
-            if (cameraSemaphore.tryAcquire()) {
-              sendToPriotittyModule(mappedRecognitions);
+            if (!mappedRecognitions.isEmpty()) {
+              if (cameraSemaphore.tryAcquire()) {
+                sendToPriotittyModule(mappedRecognitions);
+              }
             }
           }
         });
@@ -297,7 +290,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               highestPriority = result;
             }
           }
-          //sendCameraDetectionToBle(highestPriority.getTitle());
+          sendCameraDetectionToBle(highestPriority.getTitle());
         }
 
       }
@@ -321,10 +314,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       runDelayed(new Runnable() {
         @Override
         public void run() {
-          int [] a = BrailleParser.parse(charToPrint);
-          ble.writeToGatt(BLE.RIGHT_GATT,BrailleParser.parse(charToPrint));
+          int [] a = BrailleParser.parse(Character.toLowerCase(charToPrint));
+          ble.writeToGatt(BLE.RIGHT_GATT,Arrays.copyOfRange(a,10,20),111);
         }
-      },500*i);
+      },2000*i);
     }
 
     //Sending 0 to Right BLE
@@ -333,10 +326,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       public void run() {
         ble.writeToGatt(BLE.RIGHT_GATT,zeroArray);
       }
-    },(detectChars.length+1) * 500);
+    },(detectChars.length+1) * 2000);
 
     //Semaphore release with delay
-    semaphoreRelease(detectChars.length * 500 + 2000);
+    semaphoreRelease(detectChars.length * 2000 + 2000);
   }
 
   @Override
