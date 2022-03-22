@@ -3,7 +3,7 @@ package com.example.insight.BTSerial;
 import java.util.Arrays;
 
 public class BrailleParser {
-    private static final int ON = 16;
+    private static final int ON = 15;
 
     public static int[] parse(char c) {
         int[] braille = new int[20];
@@ -148,6 +148,6 @@ public class BrailleParser {
             default:
                 break;
         }
-        return null;
+        return braille;
     }
 }

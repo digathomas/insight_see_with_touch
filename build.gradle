@@ -20,7 +20,17 @@ allprojects {
         maven { url 'https://jitpack.io' }
         maven {
             name 'ossrh-snapshot'
-            url 'http://oss.sonatype.org/content/repositories/snapshots'
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
+        }
+        maven {
+            url 'https://api.mapbox.com/downloads/v2/releases/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                username = "mapbox"
+                password = project.properties['sk.eyJ1IjoiZGlnYXRob21hcyIsImEiOiJjbDB1MTh2YWQwMDZ1M2JtdjYzeHprMXoyIn0.AndDQJXpMQqRqUe-8g9ZmQ'] ?: ""
+            }
         }
         mavenLocal()
     }
