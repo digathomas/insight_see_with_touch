@@ -90,7 +90,7 @@ public abstract class CameraActivity
     this.activity = activity;
     this.fragmentManager = fragmentManager;
     this.ble = MainActivity.getBle();
-    cameraSemaphore = new Semaphore(0);
+    cameraSemaphore = new Semaphore(1);
 
     setFragment();
     initializeHandlers();
