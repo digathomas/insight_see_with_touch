@@ -79,6 +79,21 @@ public class BLE {
         }
     }
 
+    public void reconnectRight() {
+        if (rightGATT != null){
+            rightGATT.close();
+            rightGATT = null;
+        }
+        try {
+            rightDevice = bluetoothAdapter.getRemoteDevice(RIGHT_ADDRESS);
+            rightGATT = rightDevice.connectGatt(context, true, bluetoothGattCallback);
+        }catch (Exception e){
+            Log.d("BLE", "rightConnect: ", e);
+            Toast.makeText(context,"right bluetooth not connected",Toast.LENGTH_SHORT);
+
+        }
+    }
+
     //BluetoothGatt Callback used for discovering services and getting the characteristics
     private final BluetoothGattCallback bluetoothGattCallback = new BluetoothGattCallback() {
         @Override
@@ -114,6 +129,12 @@ public class BLE {
                         writeToGatt(RIGHT_GATT, new int[10], 64);}
                 }
             }
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+            System.out.println("Write status: " + status + " Characteristic: " + characteristic);
         }
     };
 
@@ -209,6 +230,7 @@ public class BLE {
                     if (!rightGATT.writeCharacteristic(rightWriteCharacteristic)) {
                         Log.w("BLE_Write", "Unable to write to right BLE w Values: \n" +
                                 Arrays.toString(value));
+                        reconnectRight();
                     }
                 }
             } else {
